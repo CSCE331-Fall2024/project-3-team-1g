@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -15,6 +17,7 @@ export default function Component() {
   const [selectedEntrees, setSelectedEntrees] = useState([])
   const [quantities, setQuantities] = useState({})
   const [notification, setNotification] = useState(null)
+  const userName = 'Customer'
 
   const categories = ['Mains', 'Appetizers', 'Drinks', 'Extras']
   const containers = [
@@ -23,29 +26,29 @@ export default function Component() {
     { name: 'Bigger Plate', sides: 1, entrees: 3, image: '/imgs/3black.png?height=100&width=100' },
   ]
   const sides = [
-    { name: 'White Rice', image: '/imgs/whiterice.png?height=100&width=100' },
-    { name: 'Fried Rice', image: '/imgs/friedrice.png?height=100&width=100' },
-    { name: 'Chow Mein', image: '/imgs/chowmein.png?height=100&width=100' },
+    { name: 'White Rice', image: '/imgs/whiterice.png' },
+    { name: 'Fried Rice', image: '/imgs/friedrice.png' },
+    { name: 'Chow Mein', image: '/imgs/chowmein.png' },
   ]
   const entrees = [
-    { name: 'Orange Chicken', image: '/imgs/orangechicken.png?height=100&width=100' },
-    { name: 'Beijing Beef', image: '/imgs/beijingbeef.png?height=100&width=100' },
-    { name: 'Broccoli Beef', image: '/imgs/broccolibeef.png?height=100&width=100' },
-    { name: 'String Bean Chicken Breast', image: '/imgs/stringbeanchickenbreast.png?height=100&width=100' },
-    { name: 'Black Pepper Angus Steak', image: '/imgs/beef.png?height=100&width=100' },
+    { name: 'Orange Chicken', image: '/imgs/orangechicken.png' },
+    { name: 'Beijing Beef', image: '/imgs/beijingbeef.png' },
+    { name: 'Broccoli Beef', image: '/imgs/broccolibeef.png' },
+    { name: 'String Bean Chicken Breast', image: '/imgs/stringbeanchickenbreast.png' },
+    { name: 'Black Pepper Angus Steak', image: '/imgs/beef.png' },
   ]
   const items = {
     Appetizers: [
-      { name: 'Chicken Egg Roll', price: 1.95, image: '/imgs/eggrolls.png?height=100&width=100' },
-      { name: 'Veggie Spring Roll', price: 1.95, image: '/imgs/springrolls.png?height=100&width=100' },
+      { name: 'Chicken Egg Roll', price: 1.95, image: '/imgs/eggrolls.png' },
+      { name: 'Veggie Spring Roll', price: 1.95, image: '/imgs/springrolls.jpg' },
     ],
     Drinks: [
-      { name: 'Fountain Drink', price: 2.45, image: '/imgs/drinks.png?height=100&width=100' },
-      { name: 'Bottled Water', price: 2.15, image: '/imgs/bottledwater.png?height=100&width=100' },
+      { name: 'Fountain Drink', price: 2.45, image: '/imgs/drinks.png' },
+      { name: 'Bottled Water', price: 2.15, image: '/imgs/bottledwater.png' },
     ],
     Extras: [
-      { name: 'Fortune Cookies', price: 0.95, image: '/imgs/fortunecookies.png?height=100&width=100' },
-      { name: 'Soy Sauce', price: 0.25, image: '/imgs/soysauce.png?height=100&width=100' },
+      { name: 'Fortune Cookies', price: 0.95, image: '/imgs/fortunecookies.png' },
+      { name: 'Soy Sauce', price: 0.25, image: '/imgs/soysauce.png' },
     ],
   }
 
@@ -120,7 +123,7 @@ export default function Component() {
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 bg-[#D02B2E] p-4 flex justify-between items-center z-10">
         <div className="flex items-center">
-          <Image src="/imgs/panda.png?height=40&width=40" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
+          <Image src="/imgs/panda.png?height=80&width=80" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
           <h1 className="text-2xl font-bold">Panda Express</h1>
         </div>
         <Button variant="secondary">Log out</Button>
@@ -128,7 +131,7 @@ export default function Component() {
 
       {/* Left Sidebar */}
       <div className="w-64 bg-[#D02B2E] p-4 pt-20">
-        <h2 className="text-xl font-bold mb-4">Hello, Cashier</h2>
+        <h2 className="text-xl font-bold mb-4">Hello, {userName}</h2>
         <ScrollArea className="h-[calc(100vh-12rem)]">
           {categories.map(category => (
             <Button
@@ -294,7 +297,6 @@ export default function Component() {
             <span>${(cart.total + cart.tax).toFixed(2)}</span>
           </div>
           <Button className="w-full mb-2 bg-[#FF9636] hover:bg-[#FFA54F] text-white">Checkout</Button>
-          <Button variant="secondary" className="w-full">Issue refund</Button>
         </div>
       </div>
 
