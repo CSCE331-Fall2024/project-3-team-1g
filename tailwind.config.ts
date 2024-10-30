@@ -10,6 +10,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        'dark': '#2C2C2C',
+        'panda-red': '#D02B2E',
+        'panda-red-light': '#E03A3C',
+        'panda-orange': '#FF9636',
+        'panda-orange-light': '#FFA54F',
+        'panda-gold': '#FFD700',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
