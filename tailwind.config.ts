@@ -11,7 +11,7 @@ const config: Config = {
     extend: {
       colors: {
         'dark': '#2C2C2C',
-        'panda-red': '#D02B2E',
+        'panda-red': '#90090C',
         'panda-red-light': '#E03A3C',
         'panda-orange': '#FF9636',
         'panda-orange-light': '#FFA54F',

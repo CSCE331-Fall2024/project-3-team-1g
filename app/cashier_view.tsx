@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Minus, Plus, X } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import Image from 'next/image'
+import { Input } from "@/components/ui/input"
 
 export default function Component() {
   const [selectedCategory, setSelectedCategory] = useState('Mains')
@@ -17,6 +18,11 @@ export default function Component() {
   const [selectedEntrees, setSelectedEntrees] = useState([])
   const [quantities, setQuantities] = useState({})
   const [notification, setNotification] = useState(null)
+  const [showCheckoutDialog, setShowCheckoutDialog] = useState(false)
+  const [showRefundDialog, setShowRefundDialog] = useState(false)
+  const [orderNumber, setOrderNumber] = useState('')
+  const [customerName, setCustomerName] = useState('')
+
 
   const categories = ['Mains', 'Appetizers', 'Drinks', 'Extras']
   const containers = [
@@ -111,6 +117,13 @@ export default function Component() {
     setQuantities({})
   }
 
+  const handleCheckout = (paymentType) => {
+    // Clear cart
+    setCart({ items: [], total: 0, tax: 0 })
+    setShowCheckoutDialog(false)
+    // TODO: Add SQL query here
+  }
+
   useEffect(() => {
     if (selectedCategory !== 'Mains') {
       setQuantities({})
@@ -118,9 +131,9 @@ export default function Component() {
   }, [selectedCategory])
 
   return (
-    <div className="flex h-screen bg-[#2C2C2C] text-white">
+    <div className="flex h-screen bg-[#111111] text-white">
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 bg-[#D02B2E] p-4 flex justify-between items-center z-10">
+      <div className="fixed top-0 left-0 right-0 bg-panda-red p-4 flex justify-between items-center z-10">
         <div className="flex items-center">
           <Image src="/imgs/panda.png?height=40&width=40" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
           <h1 className="text-2xl font-bold">Panda Express</h1>
@@ -129,7 +142,7 @@ export default function Component() {
       </div>
 
       {/* Left Sidebar */}
-      <div className="w-64 bg-[#D02B2E] p-4 pt-20">
+      <div className="w-64 bg-[#212324] p-4 pt-20">
         <h2 className="text-xl font-bold mb-4">Hello, Cashier</h2>
         <ScrollArea className="h-[calc(100vh-12rem)]">
           {categories.map(category => (
@@ -248,7 +261,7 @@ export default function Component() {
       </div>
 
       {/* Right Sidebar - Cart */}
-      <div className="w-64 bg-[#D02B2E] p-4 pt-20 flex flex-col">
+      <div className="w-64 bg-[#212324] p-4 pt-20 flex flex-col">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Cart</h2>
           <Dialog>
@@ -264,7 +277,8 @@ export default function Component() {
                   <div key={index} className="flex justify-between items-center mb-2">
                     <span>{item.name} (x{item.quantity})</span>
                     <Button variant="destructive" size="icon" onClick={() => removeFromCart(index)}>
-                      <X className="h-4 w-4" />
+                      <X className="h-4  w-4" />
+                    
                     </Button>
                   </div>
                 ))}
@@ -274,7 +288,6 @@ export default function Component() {
         </div>
         <ScrollArea className="flex-grow mb-4">
           {cart.items.map((item, index) => (
-            
             <div key={index} className="mb-2">
               <span>{item.name} (x{item.quantity})</span>
               {item.details && <p className="text-sm text-gray-300">{item.details}</p>}
@@ -295,10 +308,108 @@ export default function Component() {
             <span>Total:</span>
             <span>${(cart.total + cart.tax).toFixed(2)}</span>
           </div>
-          <Button className="w-full mb-2 bg-[#FF9636] hover:bg-[#FFA54F] text-white">Checkout</Button>
-          <Button variant="secondary" className="w-full">Issue refund</Button>
+          <Button 
+            className="w-full mb-2 bg-[#FF9636] hover:bg-[#FFA54F] text-white" 
+            onClick={() => setShowCheckoutDialog(true)}
+          >
+            Checkout
+          </Button>
+          <Button 
+            variant="secondary" 
+            className="w-full" 
+            onClick={() => setShowRefundDialog(true)}
+          >
+            Issue refund
+          </Button>
         </div>
       </div>
+
+      {/* Checkout Dialog */}
+      <Dialog open={showCheckoutDialog} onOpenChange={setShowCheckoutDialog}>
+        <DialogContent className="bg-[#D02B2E] text-white border-none">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Checkout</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <h3 className="text-xl underline">Summary</h3>
+            {cart.items.map((item, index) => (
+              <div key={index} className="flex justify-between">
+                <div>
+                  <div className="font-bold">{item.name}</div>
+                  {item.details && <div className="text-sm">{item.details}</div>}
+                </div>
+                <div>${(item.price * item.quantity).toFixed(2)}</div>
+              </div>
+            ))}
+            <div className="border-t pt-2">
+              <div className="flex justify-between">
+                <span>Sub Total</span>
+                <span>${cart.total.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Tax</span>
+                <span>${cart.tax.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-bold">
+                <span>Total</span>
+                <span>${(cart.total + cart.tax).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button
+              className="flex-1 bg-[#3b8132] hover:bg-[#3C3C3C]"
+              onClick={() => handleCheckout('Confirm')}
+            >
+              Confirm
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Refund Dialog */}
+      <Dialog open={showRefundDialog} onOpenChange={setShowRefundDialog}>
+        <DialogContent className="bg-[#D02B2E] text-white border-none">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Refund</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label>Order #</label>
+              <Input
+                value={orderNumber}
+                onChange={(e) => setOrderNumber(e.target.value)}
+                className="bg-[#2C2C2C] border-none"
+              />
+            </div>
+            <Button 
+              className="w-full bg-[#2C2C2C] hover:bg-[#3C3C3C]"
+              onClick={() => {}}
+            >
+              ENTER
+            </Button>
+            <div className="space-y-2">
+              <label>Customer:</label>
+              <Input
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className="bg-[#2C2C2C] border-none"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button 
+              className="w-full bg-[#2C2C2C] hover:bg-[#3C3C3C]"
+              onClick={() => {
+                setShowRefundDialog(false)
+                // TODO: Add SQL query here
+              }}
+            >
+              Refund
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Notification */}
       <AnimatePresence>
