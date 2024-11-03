@@ -6,17 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-export default function CustomerLogin() {
+export default function EmployeeLogin() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    // Add SQL database authentication logic here
-  }
-
   const handleGoogleLogin = async () => {
-    // Add Google OAuth logic here
+    // TODO: Google OAuth logic here
   }
 
   return (
@@ -24,20 +19,19 @@ export default function CustomerLogin() {
       <header className="bg-[#DC0032] text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
-            <img className="h-10"></img>
+             <img className="h-10"></img>
             <span className="text-2xl font-bold">Panda Express</span>
           </Link>
           <Button asChild variant="ghost" className="text-white hover:text-[#DC0032] hover:bg-white">
-            <Link href="/employee-login">Employee Login</Link>
+            <Link href="/customer-login">Customer Login</Link>
           </Button>
         </div>
       </header>
       <main className="flex-1">
         <div className="container mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-80px)] p-4">
-          <h1 className="text-4xl font-bold text-white mb-8">We Wok For You</h1>
           <div className="w-full max-w-md bg-[#DC0032] rounded-lg p-6 space-y-6">
-            <h2 className="text-2xl font-bold text-white text-center">Customer Login</h2>
-            <form onSubmit={handleLogin} className="space-y-4">
+            <h2 className="text-2xl font-bold text-white text-center">Employee Login</h2>
+            <form className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="username" className="text-white">
                   Username
@@ -64,9 +58,18 @@ export default function CustomerLogin() {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full bg-[#2D2D2D] text-white hover:bg-[#404040]">
-                Login
-              </Button>
+              <div className="flex gap-4 align-center">
+                <Link href="manager-view">
+                  <Button className="bg-[#2D2D2D] text-white w-40 hover:bg-[#404040]">
+                    Manager Login
+                  </Button>
+                </Link>
+                <Link href="cashier-view">
+                  <Button className="bg-[#2D2D2D] text-white w-40 hover:bg-[#404040]">
+                    Cashier Login
+                  </Button>
+                </Link>
+              </div>
             </form>
             <Button
               onClick={handleGoogleLogin}
@@ -75,9 +78,6 @@ export default function CustomerLogin() {
               Sign in with Google
             </Button>
           </div>
-          <Button className="mt-4 bg-[#DC0032] text-white hover:bg-[#b8002a]">
-            Click para Español
-          </Button>
         </div>
       </main>
     </>

@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, RefreshCcw, UserPlus, FileText, Package, Edit, Trash } from "lucide-react"
+import { Plus, RefreshCcw, UserPlus, FileText, Package, Edit, Trash} from "lucide-react"
 import Image from 'next/image'
 import { Input } from "@/components/ui/input"
 
@@ -341,7 +342,9 @@ export default function Component() {
           <Image src="/imgs/panda.png?height=40&width=40" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
           <h1 className="text-2xl font-bold">Panda Express</h1>
         </div>
-        <Button variant="secondary">Log out</Button>
+        <Link href="/employee-login">
+          <Button> Log out</Button>
+        </Link>
       </div>
 
       {/* Left Sidebar */}
