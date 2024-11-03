@@ -155,13 +155,13 @@ export default function Component() {
         </TableBody>
       </Table>
       <div className="flex gap-2">
-        <Button className="flex-1 bg-[#D02B2E] hover:bg-[#b52528]">
+        <Button className="flex-1 bg-panda-red hover:bg-[#b52528]">
           <RefreshCcw className="mr-2 h-4 w-4" />
           Refresh Table
         </Button>
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
-            <Button className="flex-1 bg-[#D02B2E] hover:bg-[#b52528]">
+            <Button className="flex-1 bg-panda-red hover:bg-[#b52528]">
               <Plus className="mr-2 h-4 w-4" />
               Add Item
             </Button>
@@ -174,7 +174,7 @@ export default function Component() {
               <Input placeholder="Stock Name" className="bg-[#1C1C1C] border-none" />
               <Input type="number" placeholder="Units" className="bg-[#1C1C1C] border-none" />
               <Input type="number" placeholder="Cost per Unit" className="bg-[#1C1C1C] border-none" />
-              <Button className="w-full bg-[#D02B2E] hover:bg-[#b52528]" onClick={() => handleAddInventoryItem({ stock: 'New Item', units: 0, costPerUnit: 0 })}>Add Item</Button>
+              <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleAddInventoryItem({ stock: 'New Item', units: 0, costPerUnit: 0 })}>Add Item</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -216,7 +216,7 @@ export default function Component() {
       <div className="flex gap-2">
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
-            <Button className="flex-1 bg-[#D02B2E] hover:bg-[#b52528]">
+            <Button className="flex-1 bg-panda-red hover:bg-[#b52528]">
               <UserPlus className="mr-2 h-4 w-4" />
               Add Employee
             </Button>
@@ -228,7 +228,7 @@ export default function Component() {
             <div className="space-y-4">
               <Input placeholder="Name" className="bg-[#1C1C1C] border-none" />
               <Input placeholder="Role" className="bg-[#1C1C1C] border-none" />
-              <Button className="w-full bg-[#D02B2E] hover:bg-[#b52528]" onClick={() => handleAddEmployee({ name: 'New Employee', role: 'Cashier' })}>Add Employee</Button>
+              <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleAddEmployee({ name: 'New Employee', role: 'Cashier' })}>Add Employee</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -267,11 +267,11 @@ export default function Component() {
         </TableBody>
       </Table>
       <div className="flex gap-2">
-        <Button className="flex-1 bg-[#D02B2E] hover:bg-[#b52528]">
+        <Button className="flex-1 bg-panda-red hover:bg-[#b52528]">
           <FileText className="mr-2 h-4 w-4" />
           Generate Report
         </Button>
-        <Button className="flex-1 bg-[#D02B2E] hover:bg-[#b52528]">Export Report</Button>
+        <Button className="flex-1 bg-panda-red hover:bg-[#b52528]">Export Report</Button>
       </div>
     </div>
   )
@@ -292,7 +292,7 @@ export default function Component() {
       </div>
       <div className="grid grid-cols-3 gap-4">
         {menuItemsState[selectedCategory].map((item) => (
-          <Card key={item.id} className="bg-[#D02B2E] border-2 border-black">
+          <Card key={item.id} className="bg-panda-red border-2 border-black">
             <CardContent className="p-4 flex flex-col items-center">
               <Image src={item.image} alt={item.name} width={100} height={100} className="mb-2" />
               <h3 className="font-bold text-white">{item.name}</h3>
@@ -312,7 +312,7 @@ export default function Component() {
       <div className="flex gap-2">
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
-            <Button className="flex-1 bg-[#D02B2E] hover:bg-[#b52528]">
+            <Button className="flex-1 bg-panda-red hover:bg-[#b52528]">
               <Plus className="mr-2 h-4 w-4" />
               Add Item
             </Button>
@@ -325,7 +325,7 @@ export default function Component() {
               <Input placeholder="Item Name" className="bg-[#1C1C1C] border-none" />
               <Input type="number" placeholder="Price" className="bg-[#1C1C1C] border-none" />
               <Input placeholder="Image URL" className="bg-[#1C1C1C] border-none" />
-              <Button className="w-full bg-[#D02B2E] hover:bg-[#b52528]" onClick={() => handleAddMenuItem(selectedCategory, { name: 'New Item', price: 0, image: '/placeholder.svg?height=100&width=100' })}>Add Item</Button>
+              <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleAddMenuItem(selectedCategory, { name: 'New Item', price: 0, image: '/placeholder.svg?height=100&width=100' })}>Add Item</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -336,16 +336,16 @@ export default function Component() {
   return (
     <div className="flex h-screen bg-[#2C2C2C] text-white">
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 bg-[#D02B2E] p-4 flex justify-between items-center z-10">
+      <div className="fixed top-0 left-0 right-0 bg-panda-red p-4 flex justify-between items-center z-10">
         <div className="flex items-center">
-          <Image src="/placeholder.svg?height=40&width=40" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
+          <Image src="/imgs/panda.png?height=40&width=40" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
           <h1 className="text-2xl font-bold">Panda Express</h1>
         </div>
         <Button variant="secondary">Log out</Button>
       </div>
 
       {/* Left Sidebar */}
-      <div className="w-64 bg-[#D02B2E] p-4 pt-20">
+      <div className="w-64 bg-panda-red p-4 pt-20">
         <h2 className="text-xl font-bold mb-4">Hello, Manager</h2>
         <ScrollArea className="h-[calc(100vh-12rem)]">
           {['Menu', 'Inventory', 'Employees', 'Reports'].map((section) => (
