@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+
 export default function CustomerLogin() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -21,15 +22,17 @@ export default function CustomerLogin() {
 
   return (
     <>
-      <header className="bg-[#DC0032] text-white p-4">
+      <header className="bg-dark text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
             <img className="h-10"></img>
             <span className="text-2xl font-bold">Panda Express</span>
           </Link>
-          <Button asChild variant="ghost" className="text-white hover:text-[#DC0032] hover:bg-white">
-            <Link href="/employee-login">Employee Login</Link>
+          <Link href="/employee-login">
+          <Button className="text-white hover:text-[#DC0032] hover:bg-white">
+            Employee Login
           </Button>
+          </Link>
         </div>
       </header>
       <main className="flex-1">
@@ -65,7 +68,7 @@ export default function CustomerLogin() {
                 />
               </div>
               <Button type="submit" className="w-full bg-[#2D2D2D] text-white hover:bg-[#404040]">
-                Login
+                <Link href="/customer_view.tsx">Login</Link>
               </Button>
             </form>
             <Button

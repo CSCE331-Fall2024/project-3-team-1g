@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
@@ -137,7 +138,9 @@ export default function Component() {
           <Image src="/placeholder.svg?height=40&width=40" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
           <h1 className="text-2xl font-bold">Panda Express</h1>
         </div>
-        <Button variant="secondary">Log out</Button>
+        <Link href="/employee-login">
+          <Button variant="secondary">Log out</Button>
+        </Link>
       </div>
 
       {/* Left Sidebar */}
