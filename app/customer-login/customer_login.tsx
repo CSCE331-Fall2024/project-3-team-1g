@@ -67,9 +67,9 @@ export default function CustomerLogin() {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full bg-[#2D2D2D] text-white hover:bg-[#404040]">
-                <Link href="/customer_view.tsx">Login</Link>
-              </Button>
+              <Link href="/customer-view">
+                <Button className="w-full mt-6 bg-[#2D2D2D] text-white hover:bg-[#404040]">Login</Button>
+              </Link>
             </form>
             <Button
               onClick={handleGoogleLogin}

@@ -138,7 +138,7 @@ export default function Component() {
           <Image src="/placeholder.svg?height=40&width=40" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
           <h1 className="text-2xl font-bold">Panda Express</h1>
         </div>
-        <Link href="/employee-login">
+        <Link href="/customer-login">
           <Button variant="secondary">Log out</Button>
         </Link>
       </div>

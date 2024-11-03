@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -126,7 +127,9 @@ export default function Component() {
           <Image src="/imgs/panda.png?height=80&width=80" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
           <h1 className="text-2xl font-bold">Panda Express</h1>
         </div>
-        <Button variant="secondary">Log out</Button>
+        <Link href="employee-login">
+          <Button variant="secondary">Log out</Button>
+        </Link>
       </div>
 
       {/* Left Sidebar */}

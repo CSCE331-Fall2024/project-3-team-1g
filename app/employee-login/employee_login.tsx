@@ -10,12 +10,8 @@ export default function EmployeeLogin() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
 
-  const handleLogin = async (role: 'manager' | 'cashier') => {
-    // Add role-specific SQL database authentication logic here
-  }
-
   const handleGoogleLogin = async () => {
-    // Add Google OAuth logic here
+    // TODO: Google OAuth logic here
   }
 
   return (
@@ -62,21 +58,17 @@ export default function EmployeeLogin() {
                   required
                 />
               </div>
-              <div className="flex gap-4">
-                <Button
-                  type="button"
-                  onClick={() => handleLogin('manager')}
-                  className="flex-1 bg-[#2D2D2D] text-white hover:bg-[#404040]"
-                >
-                  Manager Login
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => handleLogin('cashier')}
-                  className="flex-1 bg-[#2D2D2D] text-white hover:bg-[#404040]"
-                >
-                  Cashier Login
-                </Button>
+              <div className="flex gap-4 align-center">
+                <Link href="manager-view">
+                  <Button className="bg-[#2D2D2D] text-white w-40 hover:bg-[#404040]">
+                    Manager Login
+                  </Button>
+                </Link>
+                <Link href="cashier-view">
+                  <Button className="bg-[#2D2D2D] text-white w-40 hover:bg-[#404040]">
+                    Cashier Login
+                  </Button>
+                </Link>
               </div>
             </form>
             <Button
