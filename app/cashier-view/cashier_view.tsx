@@ -24,6 +24,14 @@ export default function Component() {
   const [orderNumber, setOrderNumber] = useState('')
   const [customerName, setCustomerName] = useState('')
 
+  type Item = {
+    name: string;
+    details: string;
+    sides: string[];
+    entrees: string[];
+    price: number;
+    quantity: number;
+  };
 
   const categories = ['Mains', 'Appetizers', 'Drinks', 'Extras']
   const containers = [
@@ -58,7 +66,7 @@ export default function Component() {
     ],
   }
 
-  const addToCart = (items) => {
+  const addToCart = (items: Item) => {
     setCart(prevCart => {
       const newItems = Array.isArray(items) ? items : [items]
       const newTotal = prevCart.total + newItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -90,6 +98,8 @@ export default function Component() {
       const mainItem = {
         name: `${selectedContainer} Meal`,
         details: `Side: ${selectedSides[0]}, Entrees: ${selectedEntrees.join(', ')}`,
+        sides: selectedSides,
+        entrees: selectedEntrees,
         price: 10.99,
         quantity: 1
       }
