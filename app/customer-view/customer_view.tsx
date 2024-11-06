@@ -11,59 +11,89 @@ import { AnimatePresence, motion } from "framer-motion"
 import Image from 'next/image'
 import { Input } from "@/components/ui/input"
 
+type Item = {
+  name: string;
+  details?: string;
+  sides?: string[];
+  entrees?: string[];
+  price: number;
+  quantity: number;
+  image: string;
+};
+
+type Cart = {
+  items: Item[];
+  total: number;
+  tax: number;
+};
+
+type Container = {
+  name: string;
+  sides: number;
+  entrees: number;
+  image: string;
+};
+
+type CategoryItems = {
+  [key: string]: Item[];
+};
+
+const containers: Container[] = [
+  { name: 'Bowl', sides: 1, entrees: 1, image: '/imgs/1black.png?height=100&width=100' },
+  { name: 'Plate', sides: 1, entrees: 2, image: '/imgs/2black.png?height=100&width=100' },
+  { name: 'Bigger Plate', sides: 1, entrees: 3, image: '/imgs/3black.png?height=100&width=100' },
+];
+
+const sides = [
+  { name: 'White Rice', image: '/imgs/whiterice.png?height=100&width=100' },
+  { name: 'Fried Rice', image: '/imgs/friedrice.png?height=100&width=100' },
+  { name: 'Chow Mein', image: '/imgs/chowmein.png?height=100&width=100' },
+];
+
+const entrees = [
+  { name: 'Orange Chicken', image: '/imgs/orangechicken.png?height=100&width=100' },
+  { name: 'Beijing Beef', image: '/imgs/beijingbeef.png?height=100&width=100' },
+  { name: 'Broccoli Beef', image: '/imgs/broccolibeef.png?height=100&width=100' },
+  { name: 'String Bean Chicken Breast', image: '/imgs/stringbeanchicken.png?height=100&width=100' },
+  { name: 'Black Pepper Angus Steak', image: '/imgs/beef.png?height=100&width=100' },
+];
+
+const items: CategoryItems = {
+  Appetizers: [
+    { name: 'Chicken Egg Roll', price: 1.95, image: '/imgs/eggrolls.png?height=100&width=100', quantity: 1 },
+    { name: 'Veggie Spring Roll', price: 1.95, image: '/imgs/springrolls.jpg?height=100&width=100', quantity: 1 },
+  ],
+  Drinks: [
+    { name: 'Fountain Drink', price: 2.45, image: '/imgs/drinks.png?height=100&width=100', quantity: 1 },
+    { name: 'Bottled Water', price: 2.15, image: '/imgs/waterbottle.png?height=100&width=100', quantity: 1 },
+  ],
+  Extras: [
+    { name: 'Fortune Cookies', price: 0.95, image: '/imgs/fortunecookies.jpg?height=100&width=100', quantity: 1 },
+    { name: 'Soy Sauce', price: 0.25, image: '/imgs/soysauce.png?height=100&width=100', quantity: 1 },
+  ],
+};
+
 export default function Component() {
   const [selectedCategory, setSelectedCategory] = useState('Mains')
-  const [cart, setCart] = useState({ items: [], total: 0, tax: 0 })
-  const [selectedContainer, setSelectedContainer] = useState(null)
-  const [selectedSides, setSelectedSides] = useState([])
-  const [selectedEntrees, setSelectedEntrees] = useState([])
-  const [quantities, setQuantities] = useState({})
-  const [notification, setNotification] = useState(null)
+  const [cart, setCart] = useState<Cart>({ items: [], total: 0, tax: 0 })
+  const [selectedContainer, setSelectedContainer] = useState<string | null>(null)
+  const [selectedSides, setSelectedSides] = useState<string[]>([])
+  const [selectedEntrees, setSelectedEntrees] = useState<string[]>([])
+  const [quantities, setQuantities] = useState<Record<string, number>>({})
+  const [notification, setNotification] = useState<string | null>(null)
   const [showCheckoutDialog, setShowCheckoutDialog] = useState(false)
   const [showRefundDialog, setShowRefundDialog] = useState(false)
   const [orderNumber, setOrderNumber] = useState('')
   const [customerName, setCustomerName] = useState('')
 
-
   const categories = ['Mains', 'Appetizers', 'Drinks', 'Extras']
-  const containers = [
-    { name: 'Bowl', sides: 1, entrees: 1, image: '/imgs/1black.png?height=100&width=100' },
-    { name: 'Plate', sides: 1, entrees: 2, image: '/imgs/2black.png?height=100&width=100' },
-    { name: 'Bigger Plate', sides: 1, entrees: 3, image: '/imgs/3black.png?height=100&width=100' },
-  ]
-  const sides = [
-    { name: 'White Rice', image: '/imgs/whiterice.png?height=100&width=100' },
-    { name: 'Fried Rice', image: '/imgs/friedrice.png?height=100&width=100' },
-    { name: 'Chow Mein', image: '/imgs/chowmein.png?height=100&width=100' },
-  ]
-  const entrees = [
-    { name: 'Orange Chicken', image: '/imgs/orangechicken.png?height=100&width=100' },
-    { name: 'Beijing Beef', image: '/imgs/beijingbeef.png?height=100&width=100' },
-    { name: 'Broccoli Beef', image: '/imgs/broccolibeef.png?height=100&width=100' },
-    { name: 'String Bean Chicken Breast', image: '/imgs/stringbeanchicken.png?height=100&width=100' },
-    { name: 'Black Pepper Angus Steak', image: '/imgs/beef.png?height=100&width=100' },
-  ]
-  const items = {
-    Appetizers: [
-      { name: 'Chicken Egg Roll', price: 1.95, image: '/imgs/eggrolls.png?height=100&width=100' },
-      { name: 'Veggie Spring Roll', price: 1.95, image: '/imgs/springrolls.jpg?height=100&width=100' },
-    ],
-    Drinks: [
-      { name: 'Fountain Drink', price: 2.45, image: '/imgs/drinks.png?height=100&width=100' },
-      { name: 'Bottled Water', price: 2.15, image: '/imgs/waterbottle.png?height=100&width=100' },
-    ],
-    Extras: [
-      { name: 'Fortune Cookies', price: 0.95, image: '/imgs/fortunecookies.jpg?height=100&width=100' },
-      { name: 'Soy Sauce', price: 0.25, image: '/imgs/soysauce.png?height=100&width=100' },
-    ],
-  }
 
-  const addToCart = (items) => {
+  const addToCart = (newItems: Item | Item[]) => {
     setCart(prevCart => {
-      const newItems = Array.isArray(items) ? items : [items]
-      const newTotal = prevCart.total + newItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+      const itemsToAdd = Array.isArray(newItems) ? newItems : [newItems]
+      const newTotal = prevCart.total + itemsToAdd.reduce((sum, item) => sum + item.price * item.quantity, 0)
       return {
-        items: [...prevCart.items, ...newItems],
+        items: [...prevCart.items, ...itemsToAdd],
         total: newTotal,
         tax: newTotal * 0.1
       }
@@ -72,11 +102,11 @@ export default function Component() {
     setTimeout(() => setNotification(null), 2000)
   }
 
-  const removeFromCart = (index) => {
+  const removeFromCart = (index: number) => {
     setCart(prevCart => {
       const newItems = [...prevCart.items]
       const removedItem = newItems.splice(index, 1)[0]
-      const newTotal = prevCart.total - removedItem.price * (removedItem.quantity || 1)
+      const newTotal = prevCart.total - (removedItem?.price ?? 0) * (removedItem?.quantity ?? 1)
       return {
         items: newItems,
         total: newTotal,
@@ -86,12 +116,16 @@ export default function Component() {
   }
 
   const addMainsToCart = () => {
-    if (selectedContainer && selectedSides.length === 1 && selectedEntrees.length === containers.find(c => c.name === selectedContainer).entrees) {
-      const mainItem = {
+    const selectedContainerObj = containers.find(c => c.name === selectedContainer);
+    if (selectedContainer && selectedContainerObj && selectedSides.length === 1 && selectedEntrees.length === selectedContainerObj.entrees) {
+      const mainItem: Item = {
         name: `${selectedContainer} Meal`,
         details: `Side: ${selectedSides[0]}, Entrees: ${selectedEntrees.join(', ')}`,
+        sides: selectedSides,
+        entrees: selectedEntrees,
         price: 10.99,
-        quantity: 1
+        quantity: 1,
+        image: selectedContainerObj.image
       }
       addToCart(mainItem)
       setSelectedContainer(null)
@@ -100,7 +134,7 @@ export default function Component() {
     }
   }
 
-  const handleQuantityChange = (itemName, change) => {
+  const handleQuantityChange = (itemName: string, change: number) => {
     setQuantities(prev => ({
       ...prev,
       [itemName]: Math.max((prev[itemName] || 0) + change, 0)
@@ -110,15 +144,19 @@ export default function Component() {
   const addItemsToCart = () => {
     const itemsToAdd = Object.entries(quantities)
       .filter(([_, quantity]) => quantity > 0)
-      .map(([itemName, quantity]) => {
-        const item = items[selectedCategory].find(i => i.name === itemName)
-        return { ...item, quantity }
+      .map(([itemName, quantity]): Item | null => {
+        const item = items[selectedCategory]?.find(i => i.name === itemName)
+        return item ? { ...item, quantity } : null
       })
-    addToCart(itemsToAdd)
-    setQuantities({})
+      .filter((item): item is Item => item !== null)
+    
+    if (itemsToAdd.length > 0) {
+      addToCart(itemsToAdd)
+      setQuantities({})
+    }
   }
 
-  const handleCheckout = (paymentType) => {
+  const handleCheckout = (paymentType: string) => {
     // Clear cart
     setCart({ items: [], total: 0, tax: 0 })
     setShowCheckoutDialog(false)
@@ -139,7 +177,7 @@ export default function Component() {
           <Image src="/imgs/panda.png?height=40&width=40" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
           <h1 className="text-2xl font-bold">Panda Express</h1>
         </div>
-        <Link href="customer-login">
+        <Link href="employee-login">
           <Button>Log out</Button>
         </Link>
       </div>
@@ -237,7 +275,7 @@ export default function Component() {
         ) : (
           <>
             <div className="grid grid-cols-3 gap-4">
-              {selectedCategory && items[selectedCategory]?.map((item) => (
+              {selectedCategory && items[selectedCategory]?.map((item: Item) => (
                 <Card key={item.name} className="flex flex-col justify-between bg-container-card border-2 border-black">
                   <CardContent className="p-4 flex flex-col items-center">
                     <Image src={item.image} alt={item.name} width={100} height={100} className="mb-2" />
@@ -281,7 +319,6 @@ export default function Component() {
                     <span>{item.name} (x{item.quantity})</span>
                     <Button variant="destructive" size="icon" onClick={() => removeFromCart(index)}>
                       <X className="h-4  w-4" />
-                    
                     </Button>
                   </div>
                 ))}

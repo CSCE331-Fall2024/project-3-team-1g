@@ -7,24 +7,55 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, RefreshCcw, UserPlus, FileText, Package, Edit, Trash} from "lucide-react"
+import { Plus, RefreshCcw, UserPlus, FileText, Edit, Trash} from "lucide-react"
 import Image from 'next/image'
 import { Input } from "@/components/ui/input"
 
+// Define types for our data structures
+type InventoryItem = {
+  id: string;
+  stock: string;
+  units: number;
+  costPerUnit: number;
+}
+
+type Employee = {
+  id: string;
+  name: string;
+  role: string;
+  status: string;
+}
+
+type ReportItem = {
+  category: string;
+  amount: number;
+}
+
+type MenuItem = {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+}
+
+type MenuItems = {
+  [key: string]: MenuItem[];
+}
+
 // Sample data - replace with actual data from your database
-const inventoryData = [
+const inventoryData: InventoryItem[] = [
   { id: '001', stock: 'Orange Chicken Sauce', units: 50, costPerUnit: 2.99 },
   { id: '002', stock: 'White Rice', units: 100, costPerUnit: 1.50 },
   { id: '003', stock: 'Fortune Cookies', units: 1000, costPerUnit: 0.10 },
 ]
 
-const employeeData = [
+const employeeData: Employee[] = [
   { id: '001', name: 'John Doe', role: 'Cashier', status: 'Active' },
   { id: '002', name: 'Jane Smith', role: 'Cook', status: 'Active' },
   { id: '003', name: 'Bob Wilson', role: 'Manager', status: 'Active' },
 ]
 
-const reportData = {
+const reportData: { [key: string]: ReportItem[] } = {
   X: [
     { category: 'Food Sales', amount: 5000 },
     { category: 'Beverage Sales', amount: 1000 },
@@ -46,7 +77,7 @@ const reportData = {
   ],
 }
 
-const menuItems = {
+const menuItems: MenuItems = {
   Sides: [
     { id: 's1', name: 'White Rice', price: 2.50, image: '/placeholder.svg?height=100&width=100' },
     { id: 's2', name: 'Fried Rice', price: 2.99, image: '/placeholder.svg?height=100&width=100' },
@@ -64,44 +95,44 @@ const menuItems = {
 }
 
 export default function Component() {
-  const [selectedSection, setSelectedSection] = useState('Inventory')
-  const [selectedCategory, setSelectedCategory] = useState('Sides')
-  const [showAddDialog, setShowAddDialog] = useState(false)
-  const [showEditDialog, setShowEditDialog] = useState(false)
-  const [selectedReport, setSelectedReport] = useState('X')
-  const [inventoryItems, setInventoryItems] = useState(inventoryData)
-  const [employees, setEmployees] = useState(employeeData)
-  const [menuItemsState, setMenuItemsState] = useState(menuItems)
+  const [selectedSection, setSelectedSection] = useState<string>('Inventory')
+  const [selectedCategory, setSelectedCategory] = useState<string>('Sides')
+  const [showAddDialog, setShowAddDialog] = useState<boolean>(false)
+  const [showEditDialog, setShowEditDialog] = useState<boolean>(false)
+  const [selectedReport, setSelectedReport] = useState<string>('X')
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(inventoryData)
+  const [employees, setEmployees] = useState<Employee[]>(employeeData)
+  const [menuItemsState, setMenuItemsState] = useState<MenuItems>(menuItems)
 
-  const handleAddInventoryItem = (newItem) => {
+  const handleAddInventoryItem = (newItem: Omit<InventoryItem, 'id'>) => {
     setInventoryItems([...inventoryItems, { id: `00${inventoryItems.length + 1}`, ...newItem }])
     setShowAddDialog(false)
   }
 
-  const handleEditInventoryItem = (editedItem) => {
+  const handleEditInventoryItem = (editedItem: InventoryItem) => {
     setInventoryItems(inventoryItems.map(item => item.id === editedItem.id ? editedItem : item))
     setShowEditDialog(false)
   }
 
-  const handleDeleteInventoryItem = (id) => {
+  const handleDeleteInventoryItem = (id: string) => {
     setInventoryItems(inventoryItems.filter(item => item.id !== id))
   }
 
-  const handleAddEmployee = (newEmployee) => {
+  const handleAddEmployee = (newEmployee: Omit<Employee, 'id' | 'status'>) => {
     setEmployees([...employees, { id: `00${employees.length + 1}`, ...newEmployee, status: 'Active' }])
     setShowAddDialog(false)
   }
 
-  const handleEditEmployee = (editedEmployee) => {
+  const handleEditEmployee = (editedEmployee: Employee) => {
     setEmployees(employees.map(emp => emp.id === editedEmployee.id ? editedEmployee : emp))
     setShowEditDialog(false)
   }
 
-  const handleDeleteEmployee = (id) => {
+  const handleDeleteEmployee = (id: string) => {
     setEmployees(employees.filter(emp => emp.id !== id))
   }
 
-  const handleAddMenuItem = (category, newItem) => {
+  const handleAddMenuItem = (category: string, newItem: Omit<MenuItem, 'id'>) => {
     setMenuItemsState({
       ...menuItemsState,
       [category]: [...menuItemsState[category], { id: `${category[0].toLowerCase()}${menuItemsState[category].length + 1}`, ...newItem }]
@@ -109,7 +140,7 @@ export default function Component() {
     setShowAddDialog(false)
   }
 
-  const handleEditMenuItem = (category, editedItem) => {
+  const handleEditMenuItem = (category: string, editedItem: MenuItem) => {
     setMenuItemsState({
       ...menuItemsState,
       [category]: menuItemsState[category].map(item => item.id === editedItem.id ? editedItem : item)
@@ -117,7 +148,7 @@ export default function Component() {
     setShowEditDialog(false)
   }
 
-  const handleDeleteMenuItem = (category, id) => {
+  const handleDeleteMenuItem = (category: string, id: string) => {
     setMenuItemsState({
       ...menuItemsState,
       [category]: menuItemsState[category].filter(item => item.id !== id)
@@ -144,7 +175,7 @@ export default function Component() {
               <TableCell>{item.units}</TableCell>
               <TableCell>${item.costPerUnit.toFixed(2)}</TableCell>
               <TableCell>
-                <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(item)}>
+                <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(true)}>
                   <Edit className="h-4 w-4" />
                 </Button>
                 <Button variant="ghost" size="icon" onClick={() => handleDeleteInventoryItem(item.id)}>
@@ -203,7 +234,7 @@ export default function Component() {
               <TableCell>{employee.role}</TableCell>
               <TableCell>{employee.status}</TableCell>
               <TableCell>
-                <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(employee)}>
+                <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(true)}>
                   <Edit className="h-4 w-4" />
                 </Button>
                 <Button variant="ghost" size="icon" onClick={() => handleDeleteEmployee(employee.id)}>
@@ -299,10 +330,10 @@ export default function Component() {
               <h3 className="font-bold text-white">{item.name}</h3>
               <p className="text-white">${item.price.toFixed(2)}</p>
               <div className="flex gap-2 mt-2">
-                <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(item)}>
+                <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(true)}>
                   <Edit className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() =>   handleDeleteMenuItem(selectedCategory, item.id)}>
+                <Button variant="ghost" size="icon" onClick={() => handleDeleteMenuItem(selectedCategory, item.id)}>
                   <Trash className="h-4 w-4" />
                 </Button>
               </div>
@@ -343,7 +374,7 @@ export default function Component() {
           <h1 className="text-2xl font-bold">Panda Express</h1>
         </div>
         <Link href="/employee-login">
-          <Button> Log out</Button>
+          <Button>Log out</Button>
         </Link>
       </div>
 
@@ -358,10 +389,10 @@ export default function Component() {
               className={`w-full justify-start mb-2 text-white ${selectedSection === section ? 'bg-[#FF9636] hover:bg-[#FFA54F]' : 'hover:bg-[#E03A3C]'}`}
               onClick={() => setSelectedSection(section)}
             >
-              {section === 'Menu' && <Package className="mr-2 h-4 w-4" />}
-              {section === 'Inventory' && <Package className="mr-2 h-4 w-4" />}
-              {section === 'Employees' && <UserPlus className="mr-2 h-4 w-4" />}
-              {section === 'Reports' && <FileText className="mr-2 h-4 w-4" />}
+              {section === 'Menu'}
+              {section === 'Inventory'}
+              {section === 'Employees'}
+              {section === 'Reports'}
               {section}
             </Button>
           ))}
