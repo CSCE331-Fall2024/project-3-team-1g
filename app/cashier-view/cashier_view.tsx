@@ -40,20 +40,20 @@ export default function Component() {
     { name: 'Orange Chicken', image: '/imgs/orangechicken.png?height=100&width=100' },
     { name: 'Beijing Beef', image: '/imgs/beijingbeef.png?height=100&width=100' },
     { name: 'Broccoli Beef', image: '/imgs/broccolibeef.png?height=100&width=100' },
-    { name: 'String Bean Chicken Breast', image: '/imgs/stringbeanchickenbreast.png?height=100&width=100' },
+    { name: 'String Bean Chicken Breast', image: '/imgs/stringbeanchicken.png?height=100&width=100' },
     { name: 'Black Pepper Angus Steak', image: '/imgs/beef.png?height=100&width=100' },
   ]
   const items = {
     Appetizers: [
       { name: 'Chicken Egg Roll', price: 1.95, image: '/imgs/eggrolls.png?height=100&width=100' },
-      { name: 'Veggie Spring Roll', price: 1.95, image: '/imgs/springrolls.png?height=100&width=100' },
+      { name: 'Veggie Spring Roll', price: 1.95, image: '/imgs/springrolls.jpg?height=100&width=100' },
     ],
     Drinks: [
       { name: 'Fountain Drink', price: 2.45, image: '/imgs/drinks.png?height=100&width=100' },
-      { name: 'Bottled Water', price: 2.15, image: '/imgs/bottledwater.png?height=100&width=100' },
+      { name: 'Bottled Water', price: 2.15, image: '/imgs/waterbottle.png?height=100&width=100' },
     ],
     Extras: [
-      { name: 'Fortune Cookies', price: 0.95, image: '/imgs/fortunecookies.png?height=100&width=100' },
+      { name: 'Fortune Cookies', price: 0.95, image: '/imgs/fortunecookies.jpg?height=100&width=100' },
       { name: 'Soy Sauce', price: 0.25, image: '/imgs/soysauce.png?height=100&width=100' },
     ],
   }
@@ -132,7 +132,7 @@ export default function Component() {
   }, [selectedCategory])
 
   return (
-    <div className="flex h-screen bg-[#111111] text-white">
+    <div className="flex h-screen bg-dark-background text-white">
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 bg-panda-red p-4 flex justify-between items-center z-10">
         <div className="flex items-center">
@@ -145,14 +145,14 @@ export default function Component() {
       </div>
 
       {/* Left Sidebar */}
-      <div className="w-64 bg-[#212324] p-4 pt-20">
+      <div className="w-64 bg-dark-sidebar p-4 pt-20">
         <h2 className="text-xl font-bold mb-4">Hello, Cashier</h2>
         <ScrollArea className="h-[calc(100vh-12rem)]">
           {categories.map(category => (
             <Button
               key={category}
               variant={selectedCategory === category ? "secondary" : "ghost"}
-              className={`w-full justify-start mb-2 text-white ${selectedCategory === category ? 'bg-[#FF9636] hover:bg-[#FFA54F]' : 'hover:bg-[#E03A3C]'}`}
+              className={`w-full justify-start mb-2 text-white ${selectedCategory === category ? 'bg-panda-orange hover:bg-panda-orange-light' : 'hover:bg-panda-red-light'}`}
               onClick={() => setSelectedCategory(category)}
             >
               {category}
@@ -172,7 +172,7 @@ export default function Component() {
                 {containers.map(container => (
                   <Card 
                     key={container.name} 
-                    className={`cursor-pointer bg-[#D02B2E] border-2 border-black ${selectedContainer === container.name ? 'ring-2 ring-[#FFD700]' : ''}`}
+                    className={`cursor-pointer bg-container-card border-2 border-black ${selectedContainer === container.name ? 'ring-2 ring-panda-gold' : ''}`}
                     onClick={() => setSelectedContainer(container.name)}
                   >
                     <CardContent className="p-4 flex flex-col items-center">
@@ -189,7 +189,7 @@ export default function Component() {
                 {sides.map(side => (
                   <Card 
                     key={side.name} 
-                    className={`cursor-pointer bg-[#D02B2E] border-2 border-black ${selectedSides.includes(side.name) ? 'ring-2 ring-[#FFD700]' : ''}`}
+                    className={`cursor-pointer bg-container-card border-2 border-black ${selectedSides.includes(side.name) ? 'ring-2 ring-panda-gold' : ''}`}
                     onClick={() => setSelectedSides([side.name])}
                   >
                     <CardContent className="p-4 flex flex-col items-center">
@@ -206,7 +206,7 @@ export default function Component() {
                 {entrees.map(entree => (
                   <Card 
                     key={entree.name} 
-                    className={`cursor-pointer bg-[#D02B2E] border-2 border-black ${selectedEntrees.includes(entree.name) ? 'ring-2 ring-[#FFD700]' : ''}`}
+                    className={`cursor-pointer bg-container-card border-2 border-black ${selectedEntrees.includes(entree.name) ? 'ring-2 ring-panda-gold' : ''}`}
                     onClick={() => {
                       const maxEntrees = containers.find(c => c.name === selectedContainer)?.entrees || 0
                       setSelectedEntrees(prev => 
@@ -228,7 +228,7 @@ export default function Component() {
               <Button 
                 onClick={addMainsToCart} 
                 disabled={!selectedContainer || selectedSides.length !== 1 || selectedEntrees.length !== containers.find(c => c.name === selectedContainer)?.entrees}
-                className="bg-[#FF9636] hover:bg-[#FFA54F] text-white"
+                className="bg-panda-orange hover:bg-panda-orange-light text-white"
               >
                 Add to order
               </Button>
@@ -238,7 +238,7 @@ export default function Component() {
           <>
             <div className="grid grid-cols-3 gap-4">
               {selectedCategory && items[selectedCategory]?.map((item) => (
-                <Card key={item.name} className="flex flex-col justify-between bg-[#D02B2E] border-2 border-black">
+                <Card key={item.name} className="flex flex-col justify-between bg-container-card border-2 border-black">
                   <CardContent className="p-4 flex flex-col items-center">
                     <Image src={item.image} alt={item.name} width={100} height={100} className="mb-2" />
                     <h3 className="font-bold text-white">{item.name}</h3>
@@ -257,21 +257,21 @@ export default function Component() {
               ))}
             </div>
             <div className="flex justify-end mt-4">
-              <Button onClick={addItemsToCart} className="bg-[#FF9636] hover:bg-[#FFA54F] text-white">Add to order</Button>
+              <Button onClick={addItemsToCart} className="bg-panda-orange hover:bg-panda-orange-light text-white">Add to order</Button>
             </div>
           </>
         )}
       </div>
 
       {/* Right Sidebar - Cart */}
-      <div className="w-64 bg-[#212324] p-4 pt-20 flex flex-col">
+      <div className="w-64 bg-dark-sidebar p-4 pt-20 flex flex-col">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Cart</h2>
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="secondary" size="sm">Edit</Button>
             </DialogTrigger>
-            <DialogContent className="bg-[#2C2C2C] text-white">
+            <DialogContent className="bg-dialog-dark text-white">
               <DialogHeader>
                 <DialogTitle>Edit Cart</DialogTitle>
               </DialogHeader>
@@ -312,7 +312,7 @@ export default function Component() {
             <span>${(cart.total + cart.tax).toFixed(2)}</span>
           </div>
           <Button 
-            className="w-full mb-2 bg-[#FF9636] hover:bg-[#FFA54F] text-white" 
+            className="w-full mb-2 bg-panda-orange hover:bg-panda-orange-light text-white" 
             onClick={() => setShowCheckoutDialog(true)}
           >
             Checkout
@@ -329,7 +329,7 @@ export default function Component() {
 
       {/* Checkout Dialog */}
       <Dialog open={showCheckoutDialog} onOpenChange={setShowCheckoutDialog}>
-        <DialogContent className="bg-[#D02B2E] text-white border-none">
+        <DialogContent className="bg-container-card text-white border-none">
           <DialogHeader>
             <DialogTitle className="text-2xl">Checkout</DialogTitle>
           </DialogHeader>
@@ -361,7 +361,7 @@ export default function Component() {
           </div>
           <div className="flex gap-2 justify-end">
             <Button
-              className="flex-1 bg-[#3b8132] hover:bg-[#3C3C3C]"
+              className="flex-1 bg-confirm-button hover:bg-button-hover"
               onClick={() => handleCheckout('Confirm')}
             >
               Confirm
@@ -372,7 +372,7 @@ export default function Component() {
 
       {/* Refund Dialog */}
       <Dialog open={showRefundDialog} onOpenChange={setShowRefundDialog}>
-        <DialogContent className="bg-[#D02B2E] text-white border-none">
+        <DialogContent className="bg-container-card text-white border-none">
           <DialogHeader>
             <DialogTitle className="text-2xl">Refund</DialogTitle>
           </DialogHeader>
@@ -382,11 +382,11 @@ export default function Component() {
               <Input
                 value={orderNumber}
                 onChange={(e) => setOrderNumber(e.target.value)}
-                className="bg-[#2C2C2C] border-none"
+                className="bg-dialog-dark border-none"
               />
             </div>
             <Button 
-              className="w-full bg-[#2C2C2C] hover:bg-[#3C3C3C]"
+              className="w-full bg-dialog-dark hover:bg-button-hover"
               onClick={() => {}}
             >
               ENTER
@@ -396,13 +396,13 @@ export default function Component() {
               <Input
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                className="bg-[#2C2C2C] border-none"
+                className="bg-dialog-dark border-none"
               />
             </div>
           </div>
           <div className="flex justify-end">
             <Button 
-              className="w-full bg-[#2C2C2C] hover:bg-[#3C3C3C]"
+              className="w-full bg-dialog-dark hover:bg-button-hover"
               onClick={() => {
                 setShowRefundDialog(false)
                 // TODO: Add SQL query here

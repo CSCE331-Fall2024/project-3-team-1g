@@ -22,14 +22,14 @@ export default function CustomerLogin() {
 
   return (
     <>
-      <header className="bg-dark text-white p-4">
+      <header className="bg-dark-background text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
             <img className="h-10"></img>
             <span className="text-2xl font-bold">Panda Express</span>
           </Link>
           <Link href="/employee-login">
-          <Button className="text-white hover:text-[#DC0032] hover:bg-white">
+          <Button className="text-white bg-panda-red hover:text-[#DC0032] hover:bg-white">
             Employee Login
           </Button>
           </Link>

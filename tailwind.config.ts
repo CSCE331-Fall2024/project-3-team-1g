@@ -10,11 +10,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'dark': '#2C2C2C',
+        'dark-background': '#111111',
+        'dark-sidebar': '#212324',
         'panda-red': '#90090C',
+        'dialog-dark': '#2C2C2C',
         'panda-red-light': '#E03A3C',
         'panda-orange': '#FF9636',
         'panda-orange-light': '#FFA54F',
+        'container-card': '#D02B2E',
+        'button-hover': '#3C3C3C',
+        'confirm-button': '#3b8132',
         'panda-gold': '#FFD700',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',

@@ -1,15 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
 import { Minus, Plus, X } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import Image from 'next/image'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 
 export default function Component() {
@@ -21,8 +20,10 @@ export default function Component() {
   const [quantities, setQuantities] = useState({})
   const [notification, setNotification] = useState(null)
   const [showCheckoutDialog, setShowCheckoutDialog] = useState(false)
+  const [showRefundDialog, setShowRefundDialog] = useState(false)
   const [orderNumber, setOrderNumber] = useState('')
   const [customerName, setCustomerName] = useState('')
+
 
   const categories = ['Mains', 'Appetizers', 'Drinks', 'Extras']
   const containers = [
@@ -39,20 +40,20 @@ export default function Component() {
     { name: 'Orange Chicken', image: '/imgs/orangechicken.png?height=100&width=100' },
     { name: 'Beijing Beef', image: '/imgs/beijingbeef.png?height=100&width=100' },
     { name: 'Broccoli Beef', image: '/imgs/broccolibeef.png?height=100&width=100' },
-    { name: 'String Bean Chicken Breast', image: '/imgs/stringbeanchickenbreast.png?height=100&width=100' },
+    { name: 'String Bean Chicken Breast', image: '/imgs/stringbeanchicken.png?height=100&width=100' },
     { name: 'Black Pepper Angus Steak', image: '/imgs/beef.png?height=100&width=100' },
   ]
   const items = {
     Appetizers: [
       { name: 'Chicken Egg Roll', price: 1.95, image: '/imgs/eggrolls.png?height=100&width=100' },
-      { name: 'Veggie Spring Roll', price: 1.95, image: '/imgs/springrolls.png?height=100&width=100' },
+      { name: 'Veggie Spring Roll', price: 1.95, image: '/imgs/springrolls.jpg?height=100&width=100' },
     ],
     Drinks: [
       { name: 'Fountain Drink', price: 2.45, image: '/imgs/drinks.png?height=100&width=100' },
-      { name: 'Bottled Water', price: 2.15, image: '/imgs/bottledwater.png?height=100&width=100' },
+      { name: 'Bottled Water', price: 2.15, image: '/imgs/waterbottle.png?height=100&width=100' },
     ],
     Extras: [
-      { name: 'Fortune Cookies', price: 0.95, image: '/imgs/fortunecookies.png?height=100&width=100' },
+      { name: 'Fortune Cookies', price: 0.95, image: '/imgs/fortunecookies.jpg?height=100&width=100' },
       { name: 'Soy Sauce', price: 0.25, image: '/imgs/soysauce.png?height=100&width=100' },
     ],
   }
@@ -131,27 +132,27 @@ export default function Component() {
   }, [selectedCategory])
 
   return (
-    <div className="flex h-screen bg-[#2C2C2C] text-white">
+    <div className="flex h-screen bg-dark-background text-white">
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 bg-[#D02B2E] p-4 flex justify-between items-center z-10">
+      <div className="fixed top-0 left-0 right-0 bg-panda-red p-4 flex justify-between items-center z-10">
         <div className="flex items-center">
-          <Image src="/placeholder.svg?height=40&width=40" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
+          <Image src="/imgs/panda.png?height=40&width=40" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
           <h1 className="text-2xl font-bold">Panda Express</h1>
         </div>
-        <Link href="/customer-login">
-          <Button variant="secondary">Log out</Button>
+        <Link href="customer-login">
+          <Button>Log out</Button>
         </Link>
       </div>
 
       {/* Left Sidebar */}
-      <div className="w-64 bg-[#D02B2E] p-4 pt-20">
+      <div className="w-64 bg-dark-sidebar p-4 pt-20">
         <h2 className="text-xl font-bold mb-4">Hello, Cashier</h2>
         <ScrollArea className="h-[calc(100vh-12rem)]">
           {categories.map(category => (
             <Button
               key={category}
               variant={selectedCategory === category ? "secondary" : "ghost"}
-              className={`w-full justify-start mb-2 text-white ${selectedCategory === category ? 'bg-[#FF9636] hover:bg-[#FFA54F]' : 'hover:bg-[#E03A3C]'}`}
+              className={`w-full justify-start mb-2 text-white ${selectedCategory === category ? 'bg-panda-orange hover:bg-panda-orange-light' : 'hover:bg-panda-red-light'}`}
               onClick={() => setSelectedCategory(category)}
             >
               {category}
@@ -171,7 +172,7 @@ export default function Component() {
                 {containers.map(container => (
                   <Card 
                     key={container.name} 
-                    className={`cursor-pointer bg-[#D02B2E] border-2 border-black ${selectedContainer === container.name ? 'ring-2 ring-[#FFD700]' : ''}`}
+                    className={`cursor-pointer bg-container-card border-2 border-black ${selectedContainer === container.name ? 'ring-2 ring-panda-gold' : ''}`}
                     onClick={() => setSelectedContainer(container.name)}
                   >
                     <CardContent className="p-4 flex flex-col items-center">
@@ -188,7 +189,7 @@ export default function Component() {
                 {sides.map(side => (
                   <Card 
                     key={side.name} 
-                    className={`cursor-pointer bg-[#D02B2E] border-2 border-black ${selectedSides.includes(side.name) ? 'ring-2 ring-[#FFD700]' : ''}`}
+                    className={`cursor-pointer bg-container-card border-2 border-black ${selectedSides.includes(side.name) ? 'ring-2 ring-panda-gold' : ''}`}
                     onClick={() => setSelectedSides([side.name])}
                   >
                     <CardContent className="p-4 flex flex-col items-center">
@@ -205,7 +206,7 @@ export default function Component() {
                 {entrees.map(entree => (
                   <Card 
                     key={entree.name} 
-                    className={`cursor-pointer bg-[#D02B2E] border-2 border-black ${selectedEntrees.includes(entree.name) ? 'ring-2 ring-[#FFD700]' : ''}`}
+                    className={`cursor-pointer bg-container-card border-2 border-black ${selectedEntrees.includes(entree.name) ? 'ring-2 ring-panda-gold' : ''}`}
                     onClick={() => {
                       const maxEntrees = containers.find(c => c.name === selectedContainer)?.entrees || 0
                       setSelectedEntrees(prev => 
@@ -227,7 +228,7 @@ export default function Component() {
               <Button 
                 onClick={addMainsToCart} 
                 disabled={!selectedContainer || selectedSides.length !== 1 || selectedEntrees.length !== containers.find(c => c.name === selectedContainer)?.entrees}
-                className="bg-[#FF9636] hover:bg-[#FFA54F] text-white"
+                className="bg-panda-orange hover:bg-panda-orange-light text-white"
               >
                 Add to order
               </Button>
@@ -237,7 +238,7 @@ export default function Component() {
           <>
             <div className="grid grid-cols-3 gap-4">
               {selectedCategory && items[selectedCategory]?.map((item) => (
-                <Card key={item.name} className="flex flex-col justify-between bg-[#D02B2E] border-2 border-black">
+                <Card key={item.name} className="flex flex-col justify-between bg-container-card border-2 border-black">
                   <CardContent className="p-4 flex flex-col items-center">
                     <Image src={item.image} alt={item.name} width={100} height={100} className="mb-2" />
                     <h3 className="font-bold text-white">{item.name}</h3>
@@ -256,21 +257,21 @@ export default function Component() {
               ))}
             </div>
             <div className="flex justify-end mt-4">
-              <Button onClick={addItemsToCart} className="bg-[#FF9636] hover:bg-[#FFA54F] text-white">Add to order</Button>
+              <Button onClick={addItemsToCart} className="bg-panda-orange hover:bg-panda-orange-light text-white">Add to order</Button>
             </div>
           </>
         )}
       </div>
 
       {/* Right Sidebar - Cart */}
-      <div className="w-64 bg-[#D02B2E] p-4 pt-20 flex flex-col">
+      <div className="w-64 bg-dark-sidebar p-4 pt-20 flex flex-col">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Cart</h2>
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="secondary" size="sm">Edit</Button>
             </DialogTrigger>
-            <DialogContent className="bg-[#2C2C2C] text-white">
+            <DialogContent className="bg-dialog-dark text-white">
               <DialogHeader>
                 <DialogTitle>Edit Cart</DialogTitle>
               </DialogHeader>
@@ -280,6 +281,7 @@ export default function Component() {
                     <span>{item.name} (x{item.quantity})</span>
                     <Button variant="destructive" size="icon" onClick={() => removeFromCart(index)}>
                       <X className="h-4  w-4" />
+                    
                     </Button>
                   </div>
                 ))}
@@ -310,7 +312,7 @@ export default function Component() {
             <span>${(cart.total + cart.tax).toFixed(2)}</span>
           </div>
           <Button 
-            className="w-full mb-2 bg-[#FF9636] hover:bg-[#FFA54F] text-white" 
+            className="w-full mb-2 bg-panda-orange hover:bg-panda-orange-light text-white" 
             onClick={() => setShowCheckoutDialog(true)}
           >
             Checkout
@@ -319,49 +321,47 @@ export default function Component() {
       </div>
 
       {/* Checkout Dialog */}
-      <AlertDialog open={showCheckoutDialog} onOpenChange={setShowCheckoutDialog}>
-        <AlertDialogContent className="bg-[#D02B2E] text-white border-none">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl">Checkout</AlertDialogTitle>
-            <AlertDialogDescription className="text-white">
-              <div className="space-y-4">
-                <h3 className="text-xl underline">Summary</h3>
-                {cart.items.map((item, index) => (
-                  <div key={index} className="flex justify-between">
-                    <div>
-                      <div className="font-bold">{item.name}</div>
-                      {item.details && <div className="text-sm">{item.details}</div>}
-                    </div>
-                    <div>${(item.price * item.quantity).toFixed(2)}</div>
-                  </div>
-                ))}
-                <div className="border-t pt-2">
-                  <div className="flex justify-between">
-                    <span>Sub Total</span>
-                    <span>${cart.total.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Tax</span>
-                    <span>${cart.tax.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between font-bold">
-                    <span>Total</span>
-                    <span>${(cart.total + cart.tax).toFixed(2)}</span>
-                  </div>
+      <Dialog open={showCheckoutDialog} onOpenChange={setShowCheckoutDialog}>
+        <DialogContent className="bg-container-card text-white border-none">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Checkout</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <h3 className="text-xl underline">Summary</h3>
+            {cart.items.map((item, index) => (
+              <div key={index} className="flex justify-between">
+                <div>
+                  <div className="font-bold">{item.name}</div>
+                  {item.details && <div className="text-sm">{item.details}</div>}
                 </div>
+                <div>${(item.price * item.quantity).toFixed(2)}</div>
               </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex gap-2">
+            ))}
+            <div className="border-t pt-2">
+              <div className="flex justify-between">
+                <span>Sub Total</span>
+                <span>${cart.total.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Tax</span>
+                <span>${cart.tax.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-bold">
+                <span>Total</span>
+                <span>${(cart.total + cart.tax).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end">
             <Button
-              className="flex-1 bg-[#3b8132] hover:bg-[#3C3C3C]"
+              className="flex-1 bg-confirm-button hover:bg-button-hover"
               onClick={() => handleCheckout('Confirm')}
             >
               Confirm
             </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Notification */}
       <AnimatePresence>
