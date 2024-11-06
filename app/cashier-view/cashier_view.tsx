@@ -11,27 +11,33 @@ import { AnimatePresence, motion } from "framer-motion"
 import Image from 'next/image'
 import { Input } from "@/components/ui/input"
 
+type Item = {
+  name: string;
+  details?: string;
+  sides?: string[];
+  entrees?: string[];
+  price: number;
+  quantity: number;
+};
+
+type Cart = {
+  items: Item[];
+  total: number;
+  tax: number;
+};
+
 export default function Component() {
   const [selectedCategory, setSelectedCategory] = useState('Mains')
-  const [cart, setCart] = useState({ items: [], total: 0, tax: 0 })
-  const [selectedContainer, setSelectedContainer] = useState(null)
-  const [selectedSides, setSelectedSides] = useState([])
-  const [selectedEntrees, setSelectedEntrees] = useState([])
-  const [quantities, setQuantities] = useState({})
-  const [notification, setNotification] = useState(null)
+  const [cart, setCart] = useState<Cart>({ items: [], total: 0, tax: 0 })
+  const [selectedContainer, setSelectedContainer] = useState<string | null>(null)
+  const [selectedSides, setSelectedSides] = useState<string[]>([])
+  const [selectedEntrees, setSelectedEntrees] = useState<string[]>([])
+  const [quantities, setQuantities] = useState<Record<string, number>>({})
+  const [notification, setNotification] = useState<string | null>(null)
   const [showCheckoutDialog, setShowCheckoutDialog] = useState(false)
   const [showRefundDialog, setShowRefundDialog] = useState(false)
   const [orderNumber, setOrderNumber] = useState('')
   const [customerName, setCustomerName] = useState('')
-
-  type Item = {
-    name: string;
-    details: string;
-    sides: string[];
-    entrees: string[];
-    price: number;
-    quantity: number;
-  };
 
   const categories = ['Mains', 'Appetizers', 'Drinks', 'Extras']
   const containers = [
@@ -66,12 +72,12 @@ export default function Component() {
     ],
   }
 
-  const addToCart = (items: Item) => {
+  const addToCart = (newItems: Item | Item[]) => {
     setCart(prevCart => {
-      const newItems = Array.isArray(items) ? items : [items]
-      const newTotal = prevCart.total + newItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+      const itemsToAdd = Array.isArray(newItems) ? newItems : [newItems]
+      const newTotal = prevCart.total + itemsToAdd.reduce((sum, item) => sum + item.price * item.quantity, 0)
       return {
-        items: [...prevCart.items, ...newItems],
+        items: [...prevCart.items, ...itemsToAdd],
         total: newTotal,
         tax: newTotal * 0.1
       }
