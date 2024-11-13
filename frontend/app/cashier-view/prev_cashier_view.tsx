@@ -13,13 +13,9 @@ import { Input } from "@/components/ui/input"
 
 type Item = {
   name: string;
-  container_type?: string;
+  details?: string;
   sides?: string[];
   entrees?: string[];
-  appetizers?: string[];
-  drinks?: string[];
-  extras?: string[];
-  details?: string;
   price: number;
   quantity: number;
   image: string;
@@ -74,7 +70,7 @@ const items: CategoryItems = {
   Extras: [
     { name: 'Fortune Cookies', price: 0.95, image: '/imgs/fortunecookies.jpg?height=100&width=100', quantity: 1 },
     { name: 'Soy Sauce', price: 0.25, image: '/imgs/soysauce.png?height=100&width=100', quantity: 1 },
-  ],
+  ]
 };
 
 export default function Component() {
@@ -89,15 +85,7 @@ export default function Component() {
   const [showRefundDialog, setShowRefundDialog] = useState(false)
   const [orderNumber, setOrderNumber] = useState('')
   const [customerName, setCustomerName] = useState('')
-
-  useEffect(() => {
-    // Retrieve the user's name from local storage
-    const name = localStorage.getItem('customerName');
-    if (name) {
-      setCustomerName(name);
-    }
-  }, []);
-
+  const [employeeName, setEmployeeName] = useState('');
   const categories = ['Mains', 'Appetizers', 'Drinks', 'Extras']
 
   const addToCart = (newItems: Item | Item[]) => {
@@ -168,38 +156,12 @@ export default function Component() {
     }
   }
 
-    const handleCheckout = async (paymentType: string) => {
-    // Prepare order data
-    const orderData = {
-      items: cart.items,
-    };
-  
-    try {
-      
-      const response = await fetch('http://localhost:3001/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
-      });
-  
-      const data = await response.json();
-  
-      if (!response.ok) {
-        throw new Error(data.error || 'Checkout failed');
-      }
-  
-      // Handle successful checkout
-      alert('Order placed successfully');
-      // Clear cart
-      setCart({ items: [], total: 0, tax: 0 });
-      setShowCheckoutDialog(false);
-    } catch (err) {
-      console.error('Error during checkout:', err);
-      alert('Error placing order. Please try again.');
-    }
-  };
+  const handleCheckout = (paymentType: string) => {
+    // Clear cart
+    setCart({ items: [], total: 0, tax: 0 })
+    setShowCheckoutDialog(false)
+    // TODO: Add SQL query here
+  }
 
   useEffect(() => {
     if (selectedCategory !== 'Mains') {
@@ -207,10 +169,17 @@ export default function Component() {
     }
   }, [selectedCategory])
 
+  useEffect(() => {
+    const name = localStorage.getItem('employeeName');
+    if (name) {
+      setEmployeeName(name);
+    }
+  }, []);
+
   return (
     <div className="flex h-screen bg-dark-background text-white">
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 bg-panda-red p-4 flex justify-between items-center z-10">
+      <div className="fixed top-0 left-0 right=0 bg-panda-red p-4 flex justify-between items-center z-10">
         <div className="flex items-center">
           <Image src="/imgs/panda.png?height=40&width=40" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
           <h1 className="text-2xl font-bold">Panda Express</h1>
@@ -222,8 +191,7 @@ export default function Component() {
 
       {/* Left Sidebar */}
       <div className="w-64 bg-dark-sidebar p-4 pt-20">
-        <h2 className="text-xl font-bold mb-4">Hello,{customerName}</h2>
-
+        <h2 className="text-xl font-bold mb-4">Hello, {employeeName}</h2>
         <ScrollArea className="h-[calc(100vh-12rem)]">
           {categories.map(category => (
             <Button
@@ -393,6 +361,13 @@ export default function Component() {
           >
             Checkout
           </Button>
+          <Button 
+            variant="secondary" 
+            className="w-full" 
+            onClick={() => setShowRefundDialog(true)}
+          >
+            Issue refund
+          </Button>
         </div>
       </div>
 
@@ -434,6 +409,50 @@ export default function Component() {
               onClick={() => handleCheckout('Confirm')}
             >
               Confirm
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Refund Dialog */}
+      <Dialog open={showRefundDialog} onOpenChange={setShowRefundDialog}>
+        <DialogContent className="bg-container-card text-white border-none">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Refund</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label>Order #</label>
+              <Input
+                value={orderNumber}
+                onChange={(e) => setOrderNumber(e.target.value)}
+                className="bg-dialog-dark border-none"
+              />
+            </div>
+            <Button 
+              className="w-full bg-dialog-dark hover:bg-button-hover"
+              onClick={() => {}}
+            >
+              ENTER
+            </Button>
+            <div className="space-y-2">
+              <label>Customer:</label>
+              <Input
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className="bg-dialog-dark border-none"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button 
+              className="w-full bg-dialog-dark hover:bg-button-hover"
+              onClick={() => {
+                setShowRefundDialog(false)
+                // TODO: Add SQL query here
+              }}
+            >
+              Refund
             </Button>
           </div>
         </DialogContent>
