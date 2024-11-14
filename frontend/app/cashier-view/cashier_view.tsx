@@ -143,6 +143,7 @@ export default function Component() {
     setShowCheckoutDialog(false)
   }
 
+  // Shows the buttons for menu items corresponding to the category 
   const renderNumpad = () => {
     const buttons = {
       category: categories,
@@ -186,23 +187,29 @@ export default function Component() {
   }
 
   return (
+    // Main frame/window
     <div className="flex h-screen bg-dark-background text-white">
       <div className="flex-1 flex flex-col">
+
+        {/* Header with logo and log out button*/}
         <header className="flex justify-between items-center p-4 bg-panda-red">
           <div className="flex items-center gap-2">
             <Image src="/imgs/panda.png?height=40&width=40" alt="Logo" width={40} height={40} />
             <h1 className="text-2xl font-bold">Panda Express</h1>
           </div>
           <Link href="/employee-login">
-            <Button variant="outline">Log out</Button>
+            <Button variant="outline"><h1 style ={{color: "black"}}>Log out</h1></Button>
           </Link>
         </header>
 
+        {/* Main order panel */}
         <div className="flex-1 p-4 grid grid-cols-[1fr_300px] gap-4">
           <Card className="bg-dark-sidebar border-none">
             <CardHeader className="flex flex-row items-center justify-between">
               <h2 className="text-xl font-bold">{currentStep.charAt(0).toUpperCase() + currentStep.slice(1)}</h2>
               <div className="flex gap-2">
+
+                {/* Back button takes you to previous category */}
                 <Button
                   variant="outline"
                   size="icon"
@@ -228,9 +235,11 @@ export default function Component() {
                       setCurrentStep('category');
                     }
                   }}
-                >
+                  >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
+                
+                {/* X Button takes you back to order start */}
                 <Button
                   variant="outline"
                   size="icon"
@@ -238,11 +247,13 @@ export default function Component() {
                     setCurrentItem({})
                     setCurrentStep('category')
                   }}
-                >
+                  >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             </CardHeader>
+
+            {/*  */}
             <CardContent>{renderNumpad()}</CardContent>
             {currentStep === 'entree' && (
               <CardFooter>
@@ -252,7 +263,8 @@ export default function Component() {
               </CardFooter>
             )}
           </Card>
-
+          
+          {/*  */}
           <Card className="bg-dark-sidebar border-none">
             <CardHeader className="flex flex-row items-center justify-between">
               <h2 className="text-xl font-bold text-white">Order Summary</h2>
@@ -292,6 +304,8 @@ export default function Component() {
                 <span>Total:</span>
                 <span>${(order.total + order.tax).toFixed(2)}</span>
               </div>
+
+              {/* Checkout Button */}
               <Button
                 className="w-full bg-confirm-button hover:bg-button-hover"
                 onClick={() => setShowCheckoutDialog(true)}
@@ -299,6 +313,8 @@ export default function Component() {
               >
                 Checkout
               </Button>
+
+              {/* Refund Button */}
               <Button
                 variant="outline"
                 className="w-full hover:bg-button-hover"
@@ -311,6 +327,7 @@ export default function Component() {
         </div>
       </div>
 
+      {/* Check out Popup Box */}
       <Dialog open={showCheckoutDialog} onOpenChange={setShowCheckoutDialog}>
         <DialogContent className="bg-dialog-dark text-white border-none">
           <DialogHeader>
@@ -318,6 +335,8 @@ export default function Component() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
+
+              {/* Shows all items ordered and details */}
               {order.items.map((item, index) => (
                 <div key={index} className="flex justify-between">
                   <div>
@@ -349,11 +368,14 @@ export default function Component() {
         </DialogContent>
       </Dialog>
 
+      {/* Issue Refund popout box */}
       <Dialog open={showRefundDialog} onOpenChange={setShowRefundDialog}>
         <DialogContent className="bg-dialog-dark text-white border-none">
           <DialogHeader>
             <DialogTitle>Issue Refund</DialogTitle>
           </DialogHeader>
+
+          {/* Takes inputs for order number and customer name, logic not implemented yet */}
           <div className="space-y-4">
             <div className="space-y-2">
               <label>Order Number</label>
@@ -363,6 +385,8 @@ export default function Component() {
               <label>Customer Name</label>
               <Input className="bg-dark-background border-gray-600 text-white" />
             </div>
+
+            {/* Refund currently does nothing */}
             <Button className="w-full bg-panda-red hover:bg-panda-red-light" onClick={() => setShowRefundDialog(false)}>
               Process Refund
             </Button>
@@ -370,6 +394,7 @@ export default function Component() {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Order Button (top of page) */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="bg-dialog-dark text-white border-none">
           <DialogHeader>
