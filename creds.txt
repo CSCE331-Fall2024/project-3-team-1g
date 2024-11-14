@@ -1,0 +1,15 @@
+How to access project when deployed
+
+https://project-3-team-1g.vercel.app/
+
+Customer:
+charlie.b
+charlie789
+
+Cashier:
+alice.j
+password123
+
+Manager:
+fiona.g
+fiona222
