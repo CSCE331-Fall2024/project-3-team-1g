@@ -78,7 +78,6 @@ const items: CategoryItems = {
 };
 
 export default function Component() {
-  const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
   const [selectedCategory, setSelectedCategory] = useState('Mains')
   const [cart, setCart] = useState<Cart>({ items: [], total: 0, tax: 0 })
   const [selectedContainer, setSelectedContainer] = useState<string | null>(null)
@@ -177,7 +176,7 @@ export default function Component() {
   
     try {
       
-      const response = await fetch('${backendUrl}//customer-view', {
+      const response = await fetch('http://localhost:3001/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -223,7 +222,7 @@ export default function Component() {
 
       {/* Left Sidebar */}
       <div className="w-64 bg-dark-sidebar p-4 pt-20">
-        <h2 className="text-xl font-bold mb-4">Hello,{customerName}</h2>
+        <h2 className="text-xl font-bold mb-4">Hello, {customerName}</h2>
 
         <ScrollArea className="h-[calc(100vh-12rem)]">
           {/* Creates buttons for each category that will store the current state (which tab is selected) and switch to the tab on button press */}
@@ -289,30 +288,7 @@ export default function Component() {
             <div className={selectedContainer ? '' : 'opacity-50 pointer-events-none'}>
               <h3 className="text-xl font-semibold mb-4">Select Entrees ({containers.find(c => c.name === selectedContainer)?.entrees || 0})</h3>
               <div className="grid grid-cols-3 gap-4">
-                {entrees.map(entree => {
-                  const quantity = quantities[entree.name] || 0;
-                  return (
-                    <Card 
-                      key={entree.name} 
-                      className={`cursor-pointer bg-container-card border-2 border-black ${quantity > 0 ? 'ring-2 ring-panda-gold' : ''}`}
-                    >
-                      <CardContent className="p-4 flex flex-col items-center">
-                        <Image src={entree.image} alt={entree.name} width={100} height={100} className="mb-2" />
-                        <h3 className="text-lg font-semibold text-white">{entree.name}</h3>
-                        <div className="flex items-center justify-between mt-2">
-                          <Button variant="outline" size="icon" onClick={() => handleQuantityChange(entree.name, -1)}>
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <span className="mx-2 text-white">{quantity}</span>
-                          <Button variant="outline" size="icon" onClick={() => handleQuantityChange(entree.name, 1)}>
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-                {/* {entrees.map(entree => (
+                {entrees.map(entree => (
                   <Card 
                     key={entree.name} 
                     className={`cursor-pointer bg-container-card border-2 border-black ${selectedEntrees.includes(entree.name) ? 'ring-2 ring-panda-gold' : ''}`}
@@ -330,7 +306,7 @@ export default function Component() {
                       <h3 className="text-lg font-semibold text-white">{entree.name}</h3>
                     </CardContent>
                   </Card>
-                ))} */}
+                ))}
               </div>
             </div>
             {/* Add To Order Button */}
