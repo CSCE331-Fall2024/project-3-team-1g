@@ -1,0 +1,4 @@
+{
+  "/manager-view/page": "app/manager-view/page.js",
+  "/employee-login/page": "app/employee-login/page.js"
+}
