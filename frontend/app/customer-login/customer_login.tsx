@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 export default function CustomerLogin() {
+  const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -18,7 +19,7 @@ export default function CustomerLogin() {
     setError("")
 
     try {
-      const response = await fetch('http://localhost:3001/customer-login', {
+      const response = await fetch(new URL('/customer-login', backendUrl), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

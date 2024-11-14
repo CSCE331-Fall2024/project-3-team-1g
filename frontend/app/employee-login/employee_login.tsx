@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 export default function EmployeeLogin() {
+  const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -17,7 +18,7 @@ export default function EmployeeLogin() {
     e.preventDefault()
     setError("")
 
-    const url = loginType === 'manager' ? 'http://localhost:3001/manager-login' : 'http://localhost:3001/cashier-login';
+    const url = loginType === 'manager' ? new URL('/manager-login', backendUrl) : new URL('/cashier-login', backendUrl);
     try {
       const response = await fetch(url, {
         method: 'POST',

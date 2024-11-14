@@ -78,6 +78,7 @@ const items: CategoryItems = {
 };
 
 export default function Component() {
+  const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
   const [selectedCategory, setSelectedCategory] = useState('Mains')
   const [cart, setCart] = useState<Cart>({ items: [], total: 0, tax: 0 })
   const [selectedContainer, setSelectedContainer] = useState<string | null>(null)
@@ -176,7 +177,7 @@ export default function Component() {
   
     try {
       
-      const response = await fetch('http://localhost:3001/checkout', {
+      const response = await fetch('${backendUrl}//customer-view', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
