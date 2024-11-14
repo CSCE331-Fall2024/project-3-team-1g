@@ -225,6 +225,7 @@ export default function Component() {
         <h2 className="text-xl font-bold mb-4">Hello,{customerName}</h2>
 
         <ScrollArea className="h-[calc(100vh-12rem)]">
+          {/* Creates buttons for each category that will store the current state (which tab is selected) and switch to the tab on button press */}
           {categories.map(category => (
             <Button
               key={category}
@@ -232,17 +233,21 @@ export default function Component() {
               className={`w-full justify-start mb-2 text-white ${selectedCategory === category ? 'bg-panda-orange hover:bg-panda-orange-light' : 'hover:bg-panda-red-light'}`}
               onClick={() => setSelectedCategory(category)}
             >
-              {category}
+              <span className = "text-lg font-semibold">
+                {category}
+              </span>
             </Button>
           ))}
         </ScrollArea>
       </div>
 
-      {/* Main Content */}
+      {/* Ordering Section  */}
       <div className="flex-1 p-4 pt-20 overflow-auto">
         <h2 className="text-3xl font-bold mb-4">{selectedCategory}</h2>
+        {/* Mains Tab */}
         {selectedCategory === 'Mains' ? (
           <div className="space-y-8">
+            {/* Container Selection Section */}
             <div>
               <h3 className="text-xl font-semibold mb-4">Select Container</h3>
               <div className="grid grid-cols-3 gap-4">
@@ -260,7 +265,9 @@ export default function Component() {
                 ))}
               </div>
             </div>
+            {/* Side Selection Section */}
             <div className={selectedContainer ? '' : 'opacity-50 pointer-events-none'}>
+              {/* Opacity low and sides not selectable unless container picked */}
               <h3 className="text-xl font-semibold mb-4">Select Side (1)</h3>
               <div className="grid grid-cols-3 gap-4">
                 {sides.map(side => (
@@ -271,16 +278,40 @@ export default function Component() {
                   >
                     <CardContent className="p-4 flex flex-col items-center">
                       <Image src={side.image} alt={side.name} width={100} height={100} className="mb-2" />
-                      <h4 className="font-semibold text-white">{side.name}</h4>
+                      <h3 className="text-lg font-semibold text-white">{side.name}</h3>
                     </CardContent>
                   </Card>
                 ))}
               </div>
             </div>
+            {/* Entree Selection Section */}
             <div className={selectedContainer ? '' : 'opacity-50 pointer-events-none'}>
               <h3 className="text-xl font-semibold mb-4">Select Entrees ({containers.find(c => c.name === selectedContainer)?.entrees || 0})</h3>
               <div className="grid grid-cols-3 gap-4">
-                {entrees.map(entree => (
+                {entrees.map(entree => {
+                  const quantity = quantities[entree.name] || 0;
+                  return (
+                    <Card 
+                      key={entree.name} 
+                      className={`cursor-pointer bg-container-card border-2 border-black ${quantity > 0 ? 'ring-2 ring-panda-gold' : ''}`}
+                    >
+                      <CardContent className="p-4 flex flex-col items-center">
+                        <Image src={entree.image} alt={entree.name} width={100} height={100} className="mb-2" />
+                        <h3 className="text-lg font-semibold text-white">{entree.name}</h3>
+                        <div className="flex items-center justify-between mt-2">
+                          <Button variant="outline" size="icon" onClick={() => handleQuantityChange(entree.name, -1)}>
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="mx-2 text-white">{quantity}</span>
+                          <Button variant="outline" size="icon" onClick={() => handleQuantityChange(entree.name, 1)}>
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+                {/* {entrees.map(entree => (
                   <Card 
                     key={entree.name} 
                     className={`cursor-pointer bg-container-card border-2 border-black ${selectedEntrees.includes(entree.name) ? 'ring-2 ring-panda-gold' : ''}`}
@@ -295,24 +326,26 @@ export default function Component() {
                   >
                     <CardContent className="p-4 flex flex-col items-center">
                       <Image src={entree.image} alt={entree.name} width={100} height={100} className="mb-2" />
-                      <h4 className="font-semibold text-white">{entree.name}</h4>
+                      <h3 className="text-lg font-semibold text-white">{entree.name}</h3>
                     </CardContent>
                   </Card>
-                ))}
+                ))} */}
               </div>
             </div>
+            {/* Add To Order Button */}
             <div className="flex justify-end">
               <Button 
                 onClick={addMainsToCart} 
                 disabled={!selectedContainer || selectedSides.length !== 1 || selectedEntrees.length !== containers.find(c => c.name === selectedContainer)?.entrees}
-                className="bg-panda-orange hover:bg-panda-orange-light text-white"
+                className="bg-panda-orange hover:bg-panda-orange-light text-white text-lg"
               >
-                Add to order
+                Add To Order
               </Button>
             </div>
           </div>
         ) : (
           <>
+            {/* Appetizers/Drinks/Extras Tabs */}
             <div className="grid grid-cols-3 gap-4">
               {selectedCategory && items[selectedCategory]?.map((item: Item) => (
                 <Card key={item.name} className="flex flex-col justify-between bg-container-card border-2 border-black">
@@ -334,7 +367,7 @@ export default function Component() {
               ))}
             </div>
             <div className="flex justify-end mt-4">
-              <Button onClick={addItemsToCart} className="bg-panda-orange hover:bg-panda-orange-light text-white">Add to order</Button>
+              <Button onClick={addItemsToCart} className="bg-panda-orange hover:bg-panda-orange-light text-white">Add To Order</Button>
             </div>
           </>
         )}
