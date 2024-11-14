@@ -103,18 +103,22 @@ export default function EmployeeLogin() {
                 />
               </div>
               <div className="flex gap-4 align-center">
-                <Button
-                  className="bg-[#2D2D2D] text-white w-40 hover:bg-[#404040]"
-                  onClick={(e) => handleLogin(e, 'manager')}
-                >
+                <div className="flex-1">
+                  <Button
+                    className="bg-[#2D2D2D] text-white w-full hover:bg-[#404040]"
+                    onClick={(e) => handleLogin(e, 'manager')}
+                  > 
                   Manager Login
-                </Button>
-                <Button
-                  className="bg-[#2D2D2D] text-white w-40 hover:bg-[#404040]"
-                  onClick={(e) => handleLogin(e, 'cashier')}
-                >
-                  Cashier Login
-                </Button>
+                  </Button>
+                </div>
+                <div className="flex-1">
+                  <Button
+                    className="bg-[#2D2D2D] text-white w-full hover:bg-[#404040]"
+                    onClick={(e) => handleLogin(e, 'cashier')}
+                  >
+                    Cashier Login
+                  </Button>
+                </div>
               </div>
             </form>
             <Button
