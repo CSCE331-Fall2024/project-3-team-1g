@@ -206,10 +206,10 @@ export default function Component() {
         <div className="flex-1 p-4 grid grid-cols-[1fr_300px] gap-4">
           <Card className="bg-dark-sidebar border-none">
             <CardHeader className="flex flex-row items-center justify-between">
-              <h2 className="text-xl font-bold">{currentStep.charAt(0).toUpperCase() + currentStep.slice(1)}</h2>
+              <h2 className="text-xl font-bold text-white">{currentStep.charAt(0).toUpperCase() + currentStep.slice(1)}</h2>
               <div className="flex gap-2">
 
-                {/* Back button takes you to previous category */}
+                {/* Back button takes you to previous category (step) */}
                 <Button
                   variant="outline"
                   size="icon"
@@ -253,7 +253,6 @@ export default function Component() {
               </div>
             </CardHeader>
 
-            {/*  */}
             <CardContent>{renderNumpad()}</CardContent>
             {currentStep === 'entree' && (
               <CardFooter>
@@ -264,7 +263,7 @@ export default function Component() {
             )}
           </Card>
           
-          {/*  */}
+          {/*  Right Sidebar */}
           <Card className="bg-dark-sidebar border-none">
             <CardHeader className="flex flex-row items-center justify-between">
               <h2 className="text-xl font-bold text-white">Order Summary</h2>
@@ -276,6 +275,8 @@ export default function Component() {
                 <Edit className="h-4 w-4" />
               </Button>
             </CardHeader>
+
+            {/* Displays all items within order and details (price, if in container it shows subitems) */}
             <CardContent>
               <ScrollArea className="h-[calc(100vh-400px)]">
                 {order.items.map((item, index) => (
@@ -394,9 +395,11 @@ export default function Component() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Order Button (top of page) */}
+      {/* Edit Order popout box */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="bg-dialog-dark text-white border-none">
+
+          {/* Displays all items and costs associated, X button to remove it from order */}
           <DialogHeader>
             <DialogTitle>Edit Order</DialogTitle>
           </DialogHeader>
