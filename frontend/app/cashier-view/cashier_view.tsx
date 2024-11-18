@@ -10,46 +10,49 @@ import { ArrowLeft, Edit, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-type OrderItem = {
-  name: string
-  details?: string
-  price: number
-}
+type Item = {
+  name: string;
+  container_type: string | null;
+  sides: string[] | null;
+  entrees: string[] | null;
+  appetizers: string[] | null;
+  drinks: string[] | null;
+  extras: string[] | null;
+  details: string | null;
+  price: number;
+  quantity: number;
+  image: string;
+};
 
 type OrderState = {
-  items: OrderItem[]
-  total: number
-  tax: number
+  items: Item[];
+  total: number;
+  tax: number;
 }
 
 type CategoryItems = {
-  [key: string]: {
-    name: string
-    price: number
-    image: string
-    quantity: number
-  }[]
+  [key: string]: Item[];
 }
 
 const items: CategoryItems = {
   Appetizers: [
-    { name: 'Egg Roll', price: 1.95, image: '/imgs/eggrolls.png?height=100&width=100', quantity: 1 },
-    { name: 'Spring Roll', price: 1.95, image: '/imgs/springrolls.jpg?height=100&width=100', quantity: 1 },
+    { name: 'Egg Roll', price: 1.95, image: '/imgs/eggrolls.png?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: ['Egg Roll'], drinks: null, extras: null, details: null },
+    { name: 'Spring Roll', price: 1.95, image: '/imgs/springrolls.jpg?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: ['Spring Roll'], drinks: null, extras: null, details: null },
   ],
   Drinks: [
-    { name: 'Fountain Drink', price: 2.45, image: '/imgs/drinks.png?height=100&width=100', quantity: 1 },
-    { name: 'Bottled Water', price: 2.15, image: '/imgs/waterbottle.png?height=100&width=100', quantity: 1 },
+    { name: 'Fountain Drink', price: 2.45, image: '/imgs/drinks.png?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: null, drinks: ['Fountain Drink'], extras: null, details: null },
+    { name: 'Bottled Water', price: 2.15, image: '/imgs/waterbottle.png?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: null, drinks: ['Bottled Water'], extras: null, details: null },
   ],
   Extras: [
-    { name: 'Fortune Cookies', price: 0.95, image: '/imgs/fortunecookies.jpg?height=100&width=100', quantity: 1 },
-    { name: 'Soy Sauce', price: 0.25, image: '/imgs/soysauce.png?height=100&width=100', quantity: 1 },
+    { name: 'Fortune Cookies', price: 0.95, image: '/imgs/fortunecookies.jpg?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: null, drinks: null, extras: ['Fortune Cookies'], details: null },
+    { name: 'Soy Sauce', price: 0.25, image: '/imgs/soysauce.png?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: null, drinks: null, extras: ['Soy Sauce'], details: null },
   ],
 }
 
 export default function Component() {
   const [currentStep, setCurrentStep] = useState<'category' | 'container' | 'side' | 'entree' | 'appetizers' | 'drinks' | 'extras'>('category')
   const [order, setOrder] = useState<OrderState>({ items: [], total: 0, tax: 0 })
-  const [currentItem, setCurrentItem] = useState<Partial<OrderItem>>({})
+  const [currentItem, setCurrentItem] = useState<Partial<Item>>({})
   const [remainingEntrees, setRemainingEntrees] = useState(0)
   const [maxEntrees, setMaxEntrees] = useState(0)
   const [showCheckoutDialog, setShowCheckoutDialog] = useState(false)
@@ -58,9 +61,9 @@ export default function Component() {
 
   const categories = ['Mains', 'Appetizers', 'Drinks', 'Extras']
   const containers = [
-    { name: '1 Item', price: 8.99, entrees: 1 },
-    { name: '2 Item', price: 10.99, entrees: 2 },
-    { name: '3 Item', price: 12.99, entrees: 3 },
+    { name: 'Bowl', price: 8.99, entrees: 1 },
+    { name: 'Plate', price: 10.99, entrees: 2 },
+    { name: 'Bigger Plate', price: 12.99, entrees: 3 },
   ]
   const sides = ['White Rice', 'Fried Rice', 'Chow Mein']
   const entrees = ['Orange Chicken', 'Beijing Beef', 'Broccoli Beef', 'String Bean Chicken', 'Black Pepper Angus']
@@ -78,7 +81,19 @@ export default function Component() {
   }
 
   const handleContainerSelect = (container: typeof containers[0]) => {
-    setCurrentItem({ name: container.name, price: container.price })
+    setCurrentItem({ 
+      name: container.name, 
+      price: container.price,
+      container_type: container.name,
+      sides: [],
+      entrees: [],
+      appetizers: null,
+      drinks: null,
+      extras: null,
+      details: null,
+      quantity: 1,
+      image: '/placeholder.svg?height=100&width=100'
+    })
     setRemainingEntrees(container.entrees)
     setMaxEntrees(container.entrees)
     setCurrentStep('side')
@@ -87,6 +102,7 @@ export default function Component() {
   const handleSideSelect = (side: string) => {
     setCurrentItem(prev => ({
       ...prev,
+      sides: [side],
       details: `Side: ${side}`
     }))
     setCurrentStep('entree')
@@ -95,26 +111,24 @@ export default function Component() {
   const handleEntreeSelect = (entree: string) => {
     setCurrentItem(prev => ({
       ...prev,
+      entrees: [...(prev.entrees || []), entree],
       details: prev.details ? `${prev.details}, Entree: ${entree}` : `Entree: ${entree}`
     }));
     setRemainingEntrees(prev => prev - 1);
     
     if (remainingEntrees <= 1) {
-      addToOrder(currentItem as OrderItem);
+      addToOrder(currentItem as Item);
       setCurrentItem({});
       setCurrentStep('category');
     }
   }
 
-  const handleOtherItemSelect = (item: CategoryItems[keyof CategoryItems][0]) => {
-    addToOrder({
-      name: item.name,
-      price: item.price
-    })
+  const handleOtherItemSelect = (item: Item) => {
+    addToOrder(item)
     setCurrentStep('category')
   }
 
-  const addToOrder = (item: OrderItem) => {
+  const addToOrder = (item: Item) => {
     setOrder(prev => {
       const newTotal = prev.total + item.price
       return {
@@ -143,7 +157,6 @@ export default function Component() {
     setShowCheckoutDialog(false)
   }
 
-  // Shows the buttons for menu items corresponding to the category 
   const renderNumpad = () => {
     const buttons = {
       category: categories,
@@ -187,29 +200,23 @@ export default function Component() {
   }
 
   return (
-    // Main frame/window
     <div className="flex h-screen bg-dark-background text-white">
       <div className="flex-1 flex flex-col">
-
-        {/* Header with logo and log out button*/}
         <header className="flex justify-between items-center p-4 bg-panda-red">
           <div className="flex items-center gap-2">
             <Image src="/imgs/panda.png?height=40&width=40" alt="Logo" width={40} height={40} />
             <h1 className="text-2xl font-bold">Panda Express</h1>
           </div>
           <Link href="/employee-login">
-            <Button variant="outline"><h1 style ={{color: "black"}}>Log out</h1></Button>
+            <Button variant="outline"><h1 style={{color: "black"}}>Log out</h1></Button>
           </Link>
         </header>
 
-        {/* Main order panel */}
         <div className="flex-1 p-4 grid grid-cols-[1fr_300px] gap-4">
           <Card className="bg-dark-sidebar border-none">
             <CardHeader className="flex flex-row items-center justify-between">
               <h2 className="text-xl font-bold text-white">{currentStep.charAt(0).toUpperCase() + currentStep.slice(1)}</h2>
               <div className="flex gap-2">
-
-                {/* Back button takes you to previous category (step) */}
                 <Button
                   variant="outline"
                   size="icon"
@@ -218,15 +225,13 @@ export default function Component() {
                       setCurrentStep('category');
                     } else if (currentStep === 'entree') {
                       if (remainingEntrees < maxEntrees) {
-                        // If we've already selected some entrees, increment the remaining entrees
                         setRemainingEntrees(prev => prev + 1);
-                        // Update the currentItem by removing the last entree from the details
                         setCurrentItem(prev => ({
                           ...prev,
+                          entrees: prev.entrees?.slice(0, -1) || [],
                           details: prev.details?.split(', Entree:').slice(0, -1).join(', Entree:')
                         }));
                       } else {
-                        // If we haven't selected any entrees yet, go back to side selection
                         setCurrentStep('side');
                       }
                     } else if (currentStep === 'side') {
@@ -235,11 +240,10 @@ export default function Component() {
                       setCurrentStep('category');
                     }
                   }}
-                  >
+                >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
                 
-                {/* X Button takes you back to order start */}
                 <Button
                   variant="outline"
                   size="icon"
@@ -247,7 +251,7 @@ export default function Component() {
                     setCurrentItem({})
                     setCurrentStep('category')
                   }}
-                  >
+                >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -263,7 +267,6 @@ export default function Component() {
             )}
           </Card>
           
-          {/*  Right Sidebar */}
           <Card className="bg-dark-sidebar border-none">
             <CardHeader className="flex flex-row items-center justify-between">
               <h2 className="text-xl font-bold text-white">Order Summary</h2>
@@ -276,7 +279,6 @@ export default function Component() {
               </Button>
             </CardHeader>
 
-            {/* Displays all items within order and details (price, if in container it shows subitems) */}
             <CardContent>
               <ScrollArea className="h-[calc(100vh-400px)]">
                 {order.items.map((item, index) => (
@@ -306,7 +308,6 @@ export default function Component() {
                 <span>${(order.total + order.tax).toFixed(2)}</span>
               </div>
 
-              {/* Checkout Button */}
               <Button
                 className="w-full bg-confirm-button hover:bg-button-hover"
                 onClick={() => setShowCheckoutDialog(true)}
@@ -315,7 +316,6 @@ export default function Component() {
                 Checkout
               </Button>
 
-              {/* Refund Button */}
               <Button
                 variant="outline"
                 className="w-full hover:bg-button-hover"
@@ -328,7 +328,6 @@ export default function Component() {
         </div>
       </div>
 
-      {/* Check out Popup Box */}
       <Dialog open={showCheckoutDialog} onOpenChange={setShowCheckoutDialog}>
         <DialogContent className="bg-dialog-dark text-white border-none">
           <DialogHeader>
@@ -336,8 +335,6 @@ export default function Component() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-
-              {/* Shows all items ordered and details */}
               {order.items.map((item, index) => (
                 <div key={index} className="flex justify-between">
                   <div>
@@ -369,14 +366,12 @@ export default function Component() {
         </DialogContent>
       </Dialog>
 
-      {/* Issue Refund popout box */}
       <Dialog open={showRefundDialog} onOpenChange={setShowRefundDialog}>
         <DialogContent className="bg-dialog-dark text-white border-none">
           <DialogHeader>
             <DialogTitle>Issue Refund</DialogTitle>
           </DialogHeader>
 
-          {/* Takes inputs for order number and customer name, logic not implemented yet */}
           <div className="space-y-4">
             <div className="space-y-2">
               <label>Order Number</label>
@@ -387,7 +382,6 @@ export default function Component() {
               <Input className="bg-dark-background border-gray-600 text-white" />
             </div>
 
-            {/* Refund currently does nothing */}
             <Button className="w-full bg-panda-red hover:bg-panda-red-light" onClick={() => setShowRefundDialog(false)}>
               Process Refund
             </Button>
@@ -395,11 +389,8 @@ export default function Component() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Order popout box */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="bg-dialog-dark text-white border-none">
-
-          {/* Displays all items and costs associated, X button to remove it from order */}
           <DialogHeader>
             <DialogTitle>Edit Order</DialogTitle>
           </DialogHeader>

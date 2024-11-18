@@ -13,13 +13,13 @@ import { Input } from "@/components/ui/input"
 
 type Item = {
   name: string;
-  container_type?: string;
-  sides?: string[];
-  entrees?: string[];
-  appetizers?: string[];
-  drinks?: string[];
-  extras?: string[];
-  details?: string;
+  container_type: string | null;
+  sides: string[] | null;
+  entrees: string[] | null;
+  appetizers: string[] | null;
+  drinks: string[] | null;
+  extras: string[] | null;
+  details: string | null;
   price: number;
   quantity: number;
   image: string;
@@ -64,20 +64,26 @@ const entrees = [
 
 const items: CategoryItems = {
   Appetizers: [
-    { name: 'Egg Roll', price: 1.95, image: '/imgs/eggrolls.png?height=100&width=100', quantity: 1 },
-    { name: 'Spring Roll', price: 1.95, image: '/imgs/springrolls.jpg?height=100&width=100', quantity: 1 },
+    { name: 'Egg Roll', price: 1.95, image: '/imgs/eggrolls.png?height=100&width=100', quantity: 1,container_type: null,sides: null,entrees: null,appetizers: ['Egg Roll'],drinks: null,extras: null,details: null},
+    { name: 'Spring Roll', price: 1.95, image: '/imgs/springrolls.jpg?height=100&width=100', quantity: 1,container_type: null,sides: null,entrees: null,appetizers: ['Spring Roll'],drinks: null,extras: null,details: null
+    },
   ],
   Drinks: [
-    { name: 'Fountain Drink', price: 2.45, image: '/imgs/drinks.png?height=100&width=100', quantity: 1 },
-    { name: 'Bottled Water', price: 2.15, image: '/imgs/waterbottle.png?height=100&width=100', quantity: 1 },
+    { name: 'Fountain Drink', price: 2.45, image: '/imgs/drinks.png?height=100&width=100', quantity: 1,container_type: null,sides: null,entrees: null,appetizers: null,drinks: ['Fountain Drink'],extras: null,details: null
+    },
+    { name: 'Bottled Water', price: 2.15, image: '/imgs/waterbottle.png?height=100&width=100', quantity: 1,container_type: null,sides: null,entrees: null,appetizers: null,drinks: ['Bottled Water'],extras: null,details: null
+    },
   ],
   Extras: [
-    { name: 'Fortune Cookies', price: 0.95, image: '/imgs/fortunecookies.jpg?height=100&width=100', quantity: 1 },
-    { name: 'Soy Sauce', price: 0.25, image: '/imgs/soysauce.png?height=100&width=100', quantity: 1 },
+    { name: 'Fortune Cookies', price: 0.95, image: '/imgs/fortunecookies.jpg?height=100&width=100', quantity: 1,container_type: null,sides: null,entrees: null,appetizers: null,drinks: null,extras: ['Fortune Cookies'],details: null
+    },
+    { name: 'Soy Sauce', price: 0.25, image: '/imgs/soysauce.png?height=100&width=100', quantity: 1,container_type: null,sides: null,entrees: null,appetizers: null,drinks: null,extras: ['Soy Sauce'],details: null
+    },
   ],
 };
 
 export default function Component() {
+  const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
   const [selectedCategory, setSelectedCategory] = useState('Mains')
   const [cart, setCart] = useState<Cart>({ items: [], total: 0, tax: 0 })
   const [selectedContainer, setSelectedContainer] = useState<string | null>(null)
@@ -132,9 +138,13 @@ export default function Component() {
     if (selectedContainer && selectedContainerObj && selectedSides.length === 1 && selectedEntrees.length === selectedContainerObj.entrees) {
       const mainItem: Item = {
         name: `${selectedContainer} Meal`,
-        details: `Side: ${selectedSides[0]}, Entrees: ${selectedEntrees.join(', ')}`,
+        container_type: selectedContainer,
         sides: selectedSides,
         entrees: selectedEntrees,
+        appetizers: null,
+        drinks: null,
+        extras: null,
+        details: `Side: ${selectedSides[0]}, Entrees: ${selectedEntrees.join(', ')}`,
         price: 10.99,
         quantity: 1,
         image: selectedContainerObj.image
@@ -168,31 +178,39 @@ export default function Component() {
     }
   }
 
-    const handleCheckout = async (paymentType: string) => {
-    // Prepare order data
+  const handleCheckout = async () => {
     const orderData = {
-      items: cart.items,
+      items: cart.items.map(item => ({
+        name: item.name,
+        container_type: item.container_type,
+        sides: item.sides,
+        entrees: item.entrees,
+        appetizers: item.appetizers,
+        drinks: item.drinks,
+        extras: item.extras,
+        price: item.price,
+        quantity: item.quantity
+      })),
+      total: cart.total,
+      tax: cart.tax
     };
-  
+
     try {
-      
-      const response = await fetch('http://localhost:3001/checkout', {
+      const response = await fetch(new URL('/customer-view', backendUrl), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(orderData),
       });
-  
+
       const data = await response.json();
-  
+
       if (!response.ok) {
         throw new Error(data.error || 'Checkout failed');
       }
-  
-      // Handle successful checkout
+
       alert('Order placed successfully');
-      // Clear cart
       setCart({ items: [], total: 0, tax: 0 });
       setShowCheckoutDialog(false);
     } catch (err) {
@@ -441,7 +459,7 @@ export default function Component() {
           <div className="flex gap-2 justify-end">
             <Button
               className="flex-1 bg-confirm-button hover:bg-button-hover"
-              onClick={() => handleCheckout('Confirm')}
+              onClick={handleCheckout}
             >
               Confirm
             </Button>
