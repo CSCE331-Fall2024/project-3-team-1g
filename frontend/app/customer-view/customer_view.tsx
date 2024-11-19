@@ -83,7 +83,7 @@ const items: CategoryItems = {
 };
 
 export default function Component() {
-  const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
+  const backendUrl = 'http://localhost:3001'
   const [selectedCategory, setSelectedCategory] = useState('Mains')
   const [cart, setCart] = useState<Cart>({ items: [], total: 0, tax: 0 })
   const [selectedContainer, setSelectedContainer] = useState<string | null>(null)
