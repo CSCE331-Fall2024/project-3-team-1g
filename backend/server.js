@@ -105,6 +105,10 @@ app.post('/manager-login', async (req, res) => {
   }
 });
 
+app.post('/manager-view', async (req, res) => {
+  
+});
+
 
 
 const PORT = process.env.PORT || 3001;

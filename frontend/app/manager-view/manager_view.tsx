@@ -167,12 +167,12 @@ export default function Component() {
     <div className="space-y-4">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Stock</TableHead>
-            <TableHead>Units</TableHead>
-            <TableHead>Cost/Unit</TableHead>
-            <TableHead>Actions</TableHead>
+          <TableRow className="text-lg bg-white hover:bg-current">
+            <TableHead className="text-black">ID</TableHead>
+            <TableHead className="text-black">Stock</TableHead>
+            <TableHead className="text-black">Units</TableHead>
+            <TableHead className="text-black">Cost/Unit</TableHead>
+            <TableHead className="text-black">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -195,13 +195,13 @@ export default function Component() {
         </TableBody>
       </Table>
       <div className="flex gap-2">
-        <Button className="flex-1 bg-panda-red hover:bg-[#b52528]">
+        <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg">
           <RefreshCcw className="mr-2 h-4 w-4" />
           Refresh Table
         </Button>
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
-            <Button className="flex-1 bg-panda-red hover:bg-[#b52528]">
+            <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg">
               <Plus className="mr-2 h-4 w-4" />
               Add Item
             </Button>
@@ -226,12 +226,12 @@ export default function Component() {
     <div className="space-y-4">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Actions</TableHead>
+          <TableRow className="text-lg bg-white hover:bg-current">
+            <TableHead className="text-black">ID</TableHead>
+            <TableHead className="text-black">Name</TableHead>
+            <TableHead className="text-black">Role</TableHead>
+            <TableHead className="text-black">Status</TableHead>
+            <TableHead className="text-black">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -256,7 +256,7 @@ export default function Component() {
       <div className="flex gap-2">
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
-            <Button className="flex-1 bg-panda-red hover:bg-[#b52528]">
+            <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg">
               <UserPlus className="mr-2 h-4 w-4" />
               Add Employee
             </Button>
@@ -268,7 +268,7 @@ export default function Component() {
             <div className="space-y-4">
               <Input placeholder="Name" className="bg-[#1C1C1C] border-none" />
               <Input placeholder="Role" className="bg-[#1C1C1C] border-none" />
-              <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleAddEmployee({ name: 'New Employee', role: 'Cashier' })}>Add Employee</Button>
+              <Button className="w-full flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg" onClick={() => handleAddEmployee({ name: 'New Employee', role: 'Cashier' })}>Add Employee</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -283,7 +283,7 @@ export default function Component() {
           <Button
             key={reportType}
             variant={selectedReport === reportType ? "secondary" : "ghost"}
-            className={`text-white ${selectedReport === reportType ? 'bg-[#FF9636] hover:bg-[#FFA54F]' : 'hover:bg-[#E03A3C]'}`}
+            className={`text-white text-lg ${selectedReport === reportType ? 'bg-[#FF9636] hover:bg-[#FFA54F]' : 'hover:bg-[#E03A3C]'}`}
             onClick={() => setSelectedReport(reportType)}
           >
             {reportType} Report
@@ -307,11 +307,11 @@ export default function Component() {
         </TableBody>
       </Table>
       <div className="flex gap-2">
-        <Button className="flex-1 bg-panda-red hover:bg-[#b52528]">
+        <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg">
           <FileText className="mr-2 h-4 w-4" />
           Generate Report
         </Button>
-        <Button className="flex-1 bg-panda-red hover:bg-[#b52528]">Export Report</Button>
+        <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg">Export Report</Button>
       </div>
     </div>
   )
@@ -323,7 +323,7 @@ export default function Component() {
           <Button
             key={category}
             variant={selectedCategory === category ? "secondary" : "ghost"}
-            className={`text-white ${selectedCategory === category ? 'bg-[#FF9636] hover:bg-[#FFA54F]' : 'hover:bg-[#E03A3C]'}`}
+            className={`text-white text-lg ${selectedCategory === category ? 'bg-[#FF9636] hover:bg-[#FFA54F]' : 'hover:bg-[#E03A3C]'}`}
             onClick={() => setSelectedCategory(category)}
           >
             {category}
@@ -332,7 +332,7 @@ export default function Component() {
       </div>
       <div className="grid grid-cols-3 gap-4">
         {menuItemsState[selectedCategory].map((item) => (
-          <Card key={item.id} className="bg-panda-red border-2 border-black">
+          <Card key={item.id} className="cursor-pointer bg-container-card border-2 border-black">
             <CardContent className="p-4 flex flex-col items-center">
               <Image src={item.image} alt={item.name} width={100} height={100} className="mb-2" />
               <h3 className="font-bold text-white">{item.name}</h3>
@@ -352,7 +352,7 @@ export default function Component() {
       <div className="flex gap-2">
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
-            <Button className="flex-1 bg-panda-red hover:bg-[#b52528]">
+            <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg">
               <Plus className="mr-2 h-4 w-4" />
               Add Item
             </Button>
@@ -374,34 +374,40 @@ export default function Component() {
   )
 
   return (
-    <div className="flex h-screen bg-[#2C2C2C] text-white">
+    // code for main panel that contains current section's contents
+    <div className="flex h-screen bg-dark-background text-white">
+
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 bg-panda-red p-4 flex justify-between items-center z-10">
         <div className="flex items-center">
-          <Image src="/imgs/panda.png?height=40&width=40" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
+          <Image src="/imgs/panda.png?height=40&width=40" alt="Panda Express Logo" width={100} height={100} className="mr-2" />
           <h1 className="text-2xl font-bold">Panda Express</h1>
         </div>
         <Link href="/employee-login">
-          <Button>Log out</Button>
+          <Button className="text-lg font-semibold">Log out</Button>
         </Link>
       </div>
 
       {/* Left Sidebar */}
-      <div className="w-64 bg-panda-red p-4 pt-20">
+      <div className="w-64 bg-dark-sidebar p-4 pt-20">
         <h2 className="text-xl font-bold mb-4">Hello, {employeeName}</h2>
+
+        {/* Creates buttons for each category that will store the current state (which tab is selected) and switch to the tab on button press */}
         <ScrollArea className="h-[calc(100vh-12rem)]">
           {['Menu', 'Inventory', 'Employees', 'Reports'].map((section) => (
             <Button
               key={section}
               variant={selectedSection === section ? "secondary" : "ghost"}
-              className={`w-full justify-start mb-2 text-white ${selectedSection === section ? 'bg-[#FF9636] hover:bg-[#FFA54F]' : 'hover:bg-[#E03A3C]'}`}
+              className={`w-full justify-start mb-2 text-white ${selectedSection === section ? 'bg-panda-orange hover:bg-panda-orange-light' : 'hover:bg-panda-red-light'}`}
               onClick={() => setSelectedSection(section)}
             >
               {section === 'Menu'}
               {section === 'Inventory'}
               {section === 'Employees'}
               {section === 'Reports'}
-              {section}
+              <span className = "text-lg font-semibold">
+                {section}
+              </span>
             </Button>
           ))}
         </ScrollArea>
