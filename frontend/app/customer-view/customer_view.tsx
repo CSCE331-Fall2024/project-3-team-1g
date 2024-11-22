@@ -64,8 +64,8 @@ const entrees = [
 
 const items: CategoryItems = {
   Appetizers: [
-    { name: 'Egg Roll', price: 1.95, image: '/imgs/eggrolls.png?height=100&width=100', quantity: 1,container_type: null,sides: null,entrees: null,appetizers: ['Egg Roll'],drinks: null,extras: null,details: null},
-    { name: 'Spring Roll', price: 1.95, image: '/imgs/springrolls.jpg?height=100&width=100', quantity: 1,container_type: null,sides: null,entrees: null,appetizers: ['Spring Roll'],drinks: null,extras: null,details: null
+    { name: 'Egg Rolls', price: 1.95, image: '/imgs/eggrolls.png?height=100&width=100', quantity: 1,container_type: null,sides: null,entrees: null,appetizers: ['Egg Rolls'],drinks: null,extras: null,details: null},
+    { name: 'Spring Rolls', price: 1.95, image: '/imgs/springrolls.jpg?height=100&width=100', quantity: 1,container_type: null,sides: null,entrees: null,appetizers: ['Spring Rolls'],drinks: null,extras: null,details: null
     },
   ],
   Drinks: [
@@ -230,11 +230,11 @@ export default function Component() {
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 bg-panda-red p-4 flex justify-between items-center z-10">
         <div className="flex items-center">
-          <Image src="/imgs/panda.png?height=40&width=40" alt="Panda Express Logo" width={100} height={100} className="mr-2" />
+          <Image src="/imgs/panda.png?height=40&width=40" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
           <h1 className="text-2xl font-bold">Panda Express</h1>
         </div>
         <Link href="employee-login">
-          <Button className="text-lg font-semibold">Log out</Button>
+          <Button>Log out</Button>
         </Link>
       </div>
 
@@ -262,17 +262,12 @@ export default function Component() {
       {/* Ordering Section  */}
       <div className="flex-1 p-4 pt-20 overflow-auto">
         <h2 className="text-3xl font-bold mb-4">{selectedCategory}</h2>
-        
         {/* Mains Tab */}
         {selectedCategory === 'Mains' ? (
           <div className="space-y-8">
-
             {/* Container Selection Section */}
             <div>
               <h3 className="text-xl font-semibold mb-4">Select Container</h3>
-
-              {/* Creates grid of cards for each container, allows
-              ordering next part of order after choosing an entree */}
               <div className="grid grid-cols-3 gap-4">
                 {containers.map(container => (
                   <Card 
