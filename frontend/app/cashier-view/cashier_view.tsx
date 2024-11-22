@@ -36,8 +36,8 @@ type CategoryItems = {
 
 const items: CategoryItems = {
   Appetizers: [
-    { name: 'Egg Roll', price: 1.95, image: '/imgs/eggrolls.png?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: ['Egg Roll'], drinks: null, extras: null, details: null },
-    { name: 'Spring Roll', price: 1.95, image: '/imgs/springrolls.jpg?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: ['Spring Roll'], drinks: null, extras: null, details: null },
+    { name: 'Egg Rolls', price: 1.95, image: '/imgs/eggrolls.png?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: ['Egg Rolls'], drinks: null, extras: null, details: null },
+    { name: 'Spring Rolls', price: 1.95, image: '/imgs/springrolls.jpg?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: ['Spring Rolls'], drinks: null, extras: null, details: null },
   ],
   Drinks: [
     { name: 'Fountain Drink', price: 2.45, image: '/imgs/drinks.png?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: null, drinks: ['Fountain Drink'], extras: null, details: null },
@@ -50,6 +50,7 @@ const items: CategoryItems = {
 }
 
 export default function Component() {
+  const backendUrl = 'http://localhost:3001'
   const [currentStep, setCurrentStep] = useState<'category' | 'container' | 'side' | 'entree' | 'appetizers' | 'drinks' | 'extras'>('category')
   const [order, setOrder] = useState<OrderState>({ items: [], total: 0, tax: 0 })
   const [currentItem, setCurrentItem] = useState<Partial<Item>>({})
@@ -152,9 +153,46 @@ export default function Component() {
     })
   }
 
-  const handleCheckout = () => {
-    setOrder({ items: [], total: 0, tax: 0 })
-    setShowCheckoutDialog(false)
+  const handleCheckout = async() => {
+    const orderData = {
+      items: order.items.map(item => ({
+        name: item.name,
+        container_type: item.container_type,
+        sides: item.sides,
+        entrees: item.entrees,
+        appetizers: item.appetizers,
+        drinks: item.drinks,
+        extras: item.extras,
+        price: item.price,
+        quantity: item.quantity
+      })),
+      total: order.total,
+      tax: order.tax
+    };
+
+    try {
+      const response = await fetch(new URL('/cashier-view', backendUrl), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Checkout failed');
+      }
+
+      alert('Order placed successfully');
+      setOrder({ items: [], total: 0, tax: 0 });
+      setShowCheckoutDialog(false);
+    } catch (err) {
+      console.error('Error during checkout:', err);
+      alert('Error placing order. Please try again.');
+    }
+
   }
 
   const renderNumpad = () => {
