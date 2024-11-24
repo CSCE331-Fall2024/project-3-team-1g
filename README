@@ -1,0 +1,5 @@
+make sure to run:
+node server.js
+
+before making any types of changes that will use the backend
+(I spent 2 hours trying to figure out why console logs weren't outputting only to find out that the server wasn't even running)
