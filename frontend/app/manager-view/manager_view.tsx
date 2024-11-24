@@ -46,7 +46,7 @@ type MenuItems = {
 const inventoryData: InventoryItem[] = [
   { id: '001', stock: 'Orange Chicken Sauce', units: 50, costPerUnit: 2.99 },
   { id: '002', stock: 'White Rice', units: 100, costPerUnit: 1.50 },
-  // { id: '003', stock: 'Fortune Cookies', units: 1000, costPerUnit: 0.10 },
+  { id: '003', stock: 'Fortune Cookies', units: 1000, costPerUnit: 0.10 },
 ]
 
 const employeeData: Employee[] = [
@@ -95,6 +95,7 @@ const menuItems: MenuItems = {
 }
 
 export default function Component() {
+  const backendUrl = 'http://localhost:3001'
   const [selectedSection, setSelectedSection] = useState<string>('Inventory')
   const [selectedCategory, setSelectedCategory] = useState<string>('Sides')
   const [showAddDialog, setShowAddDialog] = useState<boolean>(false)
@@ -113,8 +114,25 @@ export default function Component() {
 
     const fetchInventory = async () => {
       try {
-        const response = await fetch(new URL('/manager-view'));
+        const response = await fetch(new URL('/manager-view', backendUrl), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Invalid content type, expected JSON');
+        }
+
         const data = await response.json();
+        console.log(data);
+        
         setInventoryItems(data);
       }
       catch (error) {

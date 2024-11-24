@@ -109,7 +109,8 @@ app.post('/manager-view', async (req, res) => {
   try {
     //Inventory Tab
     //waits for the front end to run this command so it can render the data from the Ingredient_Inventory table, returns it in rows
-    const inventoryRows = await client.query('SELECT * FROM \"Ingredient_Inventory\"');
+    const inventoryRows = await client.query('SELECT * FROM "Ingredient_Inventory"');
+    console.log(inventoryRows.rows);
     res.json(inventoryRows.rows);
   }
   catch (error) {
