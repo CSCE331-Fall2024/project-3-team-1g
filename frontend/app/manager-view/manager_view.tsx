@@ -13,10 +13,10 @@ import { Input } from "@/components/ui/input"
 
 // Define types for our data structures
 type InventoryItem = {
-  id: string;
-  stock: string;
-  units: number;
-  costPerUnit: number;
+  Ingredient_Inventory_ID: string;
+  Stock: string;
+  Units: number;
+  Cost_Per_Unit: number;
 }
 
 type Employee = {
@@ -44,9 +44,10 @@ type MenuItems = {
 
 // sample data
 const inventoryData: InventoryItem[] = [
-  { id: '001', stock: 'Orange Chicken Sauce', units: 50, costPerUnit: 2.99 },
-  { id: '002', stock: 'White Rice', units: 100, costPerUnit: 1.50 },
-  { id: '003', stock: 'Fortune Cookies', units: 1000, costPerUnit: 0.10 },
+  { Ingredient_Inventory_ID: '000', Stock: 'N/A', Units: 0, Cost_Per_Unit: 0 },
+  // { id: '001', stock: 'Orange Chicken Sauce', units: 50, costPerUnit: 2.99 },
+  // { id: '002', stock: 'White Rice', units: 100, costPerUnit: 1.50 },
+  // { id: '003', stock: 'Fortune Cookies', units: 1000, costPerUnit: 0.10 },
 ]
 
 const employeeData: Employee[] = [
@@ -146,18 +147,18 @@ export default function Component() {
     fetchInventory();
   }, []);
 
-  const handleAddInventoryItem = (newItem: Omit<InventoryItem, 'id'>) => {
-    setInventoryItems([...inventoryItems, { id: `00${inventoryItems.length + 1}`, ...newItem }])
+  const handleAddInventoryItem = (newItem: Omit<InventoryItem, 'Ingredient_Inventory_ID'>) => {
+    setInventoryItems([...inventoryItems, { Ingredient_Inventory_ID: `00${inventoryItems.length + 1}`, ...newItem }])
     setShowAddDialog(false)
   }
 
   const handleEditInventoryItem = (editedItem: InventoryItem) => {
-    setInventoryItems(inventoryItems.map(item => item.id === editedItem.id ? editedItem : item))
+    setInventoryItems(inventoryItems.map(item => item.Ingredient_Inventory_ID === editedItem.Ingredient_Inventory_ID ? editedItem : item))
     setShowEditDialog(false)
   }
 
   const handleDeleteInventoryItem = (id: string) => {
-    setInventoryItems(inventoryItems.filter(item => item.id !== id))
+    setInventoryItems(inventoryItems.filter(item => item.Ingredient_Inventory_ID !== id))
   }
 
   const handleAddEmployee = (newEmployee: Omit<Employee, 'id' | 'status'>) => {
@@ -211,16 +212,16 @@ export default function Component() {
         </TableHeader>
         <TableBody>
           {inventoryItems.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.id}</TableCell>
-              <TableCell>{item.stock}</TableCell>
-              <TableCell>{item.units}</TableCell>
-              <TableCell>${item.costPerUnit.toFixed(2)}</TableCell>
+            <TableRow key={item.Ingredient_Inventory_ID}>
+              <TableCell>{item.Ingredient_Inventory_ID}</TableCell>
+              <TableCell>{item.Stock}</TableCell>
+              <TableCell>{item.Units}</TableCell>
+              <TableCell>${item.Cost_Per_Unit ? item.Cost_Per_Unit.toFixed(2) : '0.00'}</TableCell>
               <TableCell>
                 <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(true)}>
                   <Edit className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() => handleDeleteInventoryItem(item.id)}>
+                <Button variant="ghost" size="icon" onClick={() => handleDeleteInventoryItem(item.Ingredient_Inventory_ID)}>
                   <Trash className="h-4 w-4" />
                 </Button>
               </TableCell>
@@ -248,7 +249,7 @@ export default function Component() {
               <Input placeholder="Stock Name" className="bg-[#1C1C1C] border-none" />
               <Input type="number" placeholder="Units" className="bg-[#1C1C1C] border-none" />
               <Input type="number" placeholder="Cost per Unit" className="bg-[#1C1C1C] border-none" />
-              <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleAddInventoryItem({ stock: 'New Item', units: 0, costPerUnit: 0 })}>Add Item</Button>
+              <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleAddInventoryItem({ Stock: 'New Item', Units: 0, Cost_Per_Unit: 0 })}>Add Item</Button>
             </div>
           </DialogContent>
         </Dialog>
