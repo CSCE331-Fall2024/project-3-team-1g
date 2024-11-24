@@ -106,7 +106,16 @@ app.post('/manager-login', async (req, res) => {
 });
 
 app.post('/manager-view', async (req, res) => {
-  
+  try {
+    //Inventory Tab
+    //waits for the front end to run this command so it can render the data from the Ingredient_Inventory table, returns it in rows
+    const inventoryRows = await client.query('SELECT * FROM \"Ingredient_Inventory\"');
+    res.json(inventoryRows.rows);
+  }
+  catch (error) {
+    console.error('Error fetching Ingredient_Inventory data:', error.message);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 app.post('/customer-view', async (req, res) => {

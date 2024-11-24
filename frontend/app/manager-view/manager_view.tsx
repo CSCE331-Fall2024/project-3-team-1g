@@ -42,11 +42,11 @@ type MenuItems = {
   [key: string]: MenuItem[];
 }
 
-// Sample data - replace with actual data from your database
+// sample data
 const inventoryData: InventoryItem[] = [
   { id: '001', stock: 'Orange Chicken Sauce', units: 50, costPerUnit: 2.99 },
   { id: '002', stock: 'White Rice', units: 100, costPerUnit: 1.50 },
-  { id: '003', stock: 'Fortune Cookies', units: 1000, costPerUnit: 0.10 },
+  // { id: '003', stock: 'Fortune Cookies', units: 1000, costPerUnit: 0.10 },
 ]
 
 const employeeData: Employee[] = [
@@ -106,10 +106,26 @@ export default function Component() {
   const [employeeName, setEmployeeName] = useState('');
 
   useEffect(() => {
-    const name = localStorage.getItem('employeeName');
-    if (name) {
-      setEmployeeName(name);
-    }
+    // const name = localStorage.getItem('employeeName');
+    // if (name) {
+    //   setEmployeeName(name);
+    // }
+
+    const fetchInventory = async () => {
+      try {
+        const response = await fetch(new URL('/manager-view'));
+        const data = await response.json();
+        setInventoryItems(data);
+      }
+      catch (error) {
+        if (error instanceof Error)
+          console.error('Error fetching inventory:', error.message);
+        else
+          console.error('Unexpected error:', error);
+      }
+    };
+
+    fetchInventory();
   }, []);
 
   const handleAddInventoryItem = (newItem: Omit<InventoryItem, 'id'>) => {
