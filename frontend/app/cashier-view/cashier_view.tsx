@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -10,8 +10,17 @@ import { ArrowLeft, Edit, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
+type MenuItem = {
+  Menu_Item_ID: number;
+  Menu_Item_Name: string;
+  Menu_Item_Price: number;
+  Category: string;
+  Active_Inventory: number;
+};
+
 type Item = {
   name: string;
+  menu_item_id: number;
   container_type: string | null;
   sides: string[] | null;
   entrees: string[] | null;
@@ -31,27 +40,18 @@ type OrderState = {
 }
 
 type CategoryItems = {
-  [key: string]: Item[];
+  [key: string]: MenuItem[];
 }
 
-const items: CategoryItems = {
-  Appetizers: [
-    { name: 'Egg Rolls', price: 1.95, image: '/imgs/eggrolls.png?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: ['Egg Rolls'], drinks: null, extras: null, details: null },
-    { name: 'Spring Rolls', price: 1.95, image: '/imgs/springrolls.jpg?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: ['Spring Rolls'], drinks: null, extras: null, details: null },
-  ],
-  Drinks: [
-    { name: 'Fountain Drink', price: 2.45, image: '/imgs/drinks.png?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: null, drinks: ['Fountain Drink'], extras: null, details: null },
-    { name: 'Bottled Water', price: 2.15, image: '/imgs/waterbottle.png?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: null, drinks: ['Bottled Water'], extras: null, details: null },
-  ],
-  Extras: [
-    { name: 'Fortune Cookies', price: 0.95, image: '/imgs/fortunecookies.jpg?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: null, drinks: null, extras: ['Fortune Cookies'], details: null },
-    { name: 'Soy Sauce', price: 0.25, image: '/imgs/soysauce.png?height=100&width=100', quantity: 1, container_type: null, sides: null, entrees: null, appetizers: null, drinks: null, extras: ['Soy Sauce'], details: null },
-  ],
-}
+const PRICES = {
+  Bowl: 8.99,
+  Plate: 10.99,
+  'Bigger Plate': 12.99,
+};
 
-export default function Component() {
+export default function CashierView() {
   const backendUrl = 'http://localhost:3001'
-  const [currentStep, setCurrentStep] = useState<'category' | 'container' | 'side' | 'entree' | 'appetizers' | 'drinks' | 'extras'>('category')
+  const [currentStep, setCurrentStep] = useState<'category' | 'container' | 'sides' | 'entrees' | 'appetizers' | 'drinks' | 'extras'>('category')
   const [order, setOrder] = useState<OrderState>({ items: [], total: 0, tax: 0 })
   const [currentItem, setCurrentItem] = useState<Partial<Item>>({})
   const [remainingEntrees, setRemainingEntrees] = useState(0)
@@ -59,15 +59,36 @@ export default function Component() {
   const [showCheckoutDialog, setShowCheckoutDialog] = useState(false)
   const [showRefundDialog, setShowRefundDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
+  const [menuItems, setMenuItems] = useState<CategoryItems>({})
+
+  useEffect(() => {
+    fetchMenuItems()
+  }, [])
+
+  const fetchMenuItems = async () => {
+    try {
+      const response = await fetch(`${backendUrl}/get-menu-items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      if (!response.ok) {
+        throw new Error('Failed to fetch menu items')
+      }
+      const data = await response.json()
+      setMenuItems(data)
+    } catch (error) {
+      console.error('Error fetching menu items:', error)
+    }
+  }
 
   const categories = ['Mains', 'Appetizers', 'Drinks', 'Extras']
   const containers = [
-    { name: 'Bowl', price: 8.99, entrees: 1 },
-    { name: 'Plate', price: 10.99, entrees: 2 },
-    { name: 'Bigger Plate', price: 12.99, entrees: 3 },
+    { name: 'Bowl', entrees: 1 },
+    { name: 'Plate', entrees: 2 },
+    { name: 'Bigger Plate', entrees: 3 },
   ]
-  const sides = ['White Rice', 'Fried Rice', 'Chow Mein']
-  const entrees = ['Orange Chicken', 'Beijing Beef', 'Broccoli Beef', 'String Bean Chicken', 'Black Pepper Angus']
 
   const handleCategorySelect = (category: string) => {
     if (category === 'Mains') {
@@ -84,7 +105,7 @@ export default function Component() {
   const handleContainerSelect = (container: typeof containers[0]) => {
     setCurrentItem({ 
       name: container.name, 
-      price: container.price,
+      price: PRICES[container.name as keyof typeof PRICES],
       container_type: container.name,
       sides: [],
       entrees: [],
@@ -92,40 +113,55 @@ export default function Component() {
       drinks: null,
       extras: null,
       details: null,
-      quantity: 1,
-      image: '/placeholder.svg?height=100&width=100'
+      quantity: 1
     })
     setRemainingEntrees(container.entrees)
     setMaxEntrees(container.entrees)
-    setCurrentStep('side')
+    setCurrentStep('sides')
   }
 
-  const handleSideSelect = (side: string) => {
+  const handleSideSelect = (side: MenuItem) => {
     setCurrentItem(prev => ({
       ...prev,
-      sides: [side],
-      details: `Side: ${side}`
+      sides: [side.Menu_Item_Name],
+      details: `Side: ${side.Menu_Item_Name} (ID: ${side.Menu_Item_ID})`
     }))
-    setCurrentStep('entree')
+    setCurrentStep('entrees')
   }
 
-  const handleEntreeSelect = (entree: string) => {
+  const handleEntreeSelect = (entree: MenuItem) => {
     setCurrentItem(prev => ({
       ...prev,
-      entrees: [...(prev.entrees || []), entree],
-      details: prev.details ? `${prev.details}, Entree: ${entree}` : `Entree: ${entree}`
+      entrees: [...(prev.entrees || []), entree.Menu_Item_Name],
+      details: prev.details 
+        ? `${prev.details}, Entree: ${entree.Menu_Item_Name} (ID: ${entree.Menu_Item_ID})` 
+        : `Entree: ${entree.Menu_Item_Name} (ID: ${entree.Menu_Item_ID})`
     }));
     setRemainingEntrees(prev => prev - 1);
     
     if (remainingEntrees <= 1) {
-      addToOrder(currentItem as Item);
+      addToOrder({...currentItem, entrees: [...(currentItem.entrees || []), entree.Menu_Item_Name]} as Item);
       setCurrentItem({});
       setCurrentStep('category');
     }
   }
 
-  const handleOtherItemSelect = (item: Item) => {
-    addToOrder(item)
+  const handleOtherItemSelect = (item: MenuItem) => {
+    const newItem: Item = {
+      name: item.Menu_Item_Name,
+      menu_item_id: item.Menu_Item_ID,
+      price: item.Menu_Item_Price,
+      image: '/placeholder.svg?height=100&width=100',
+      quantity: 1,
+      container_type: null,
+      sides: null,
+      entrees: null,
+      appetizers: item.Category === 'Appetizers' ? [item.Menu_Item_Name] : null,
+      drinks: item.Category === 'Drinks' ? [item.Menu_Item_Name] : null,
+      extras: item.Category === 'Extras' ? [item.Menu_Item_Name] : null,
+      details: `${item.Menu_Item_Name} (ID: ${item.Menu_Item_ID})`,
+    }
+    addToOrder(newItem)
     setCurrentStep('category')
   }
 
@@ -157,6 +193,7 @@ export default function Component() {
     const orderData = {
       items: order.items.map(item => ({
         name: item.name,
+        menu_item_id: item.menu_item_id,
         container_type: item.container_type,
         sides: item.sides,
         entrees: item.entrees,
@@ -179,12 +216,11 @@ export default function Component() {
         body: JSON.stringify(orderData),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || 'Checkout failed');
+        throw new Error('Checkout failed');
       }
 
+      const data = await response.json();
       alert('Order placed successfully');
       setOrder({ items: [], total: 0, tax: 0 });
       setShowCheckoutDialog(false);
@@ -192,18 +228,17 @@ export default function Component() {
       console.error('Error during checkout:', err);
       alert('Error placing order. Please try again.');
     }
-
   }
 
   const renderNumpad = () => {
     const buttons = {
       category: categories,
       container: containers.map(c => c.name),
-      side: sides,
-      entree: entrees,
-      appetizers: items.Appetizers.map(item => item.name),
-      drinks: items.Drinks.map(item => item.name),
-      extras: items.Extras.map(item => item.name)
+      sides: menuItems['Sides'] || [],
+      entrees: menuItems['Entrees'] || [],
+      appetizers: menuItems['Appetizers'] || [],
+      drinks: menuItems['Drinks'] || [],
+      extras: menuItems['Extras'] || [],
     }
 
     return (
@@ -217,20 +252,19 @@ export default function Component() {
               color: 'white',
             }}
             onClick={() => {
-              if (currentStep === 'category') handleCategorySelect(button)
+              if (currentStep === 'category') handleCategorySelect(button as string)
               else if (currentStep === 'container') {
                 const container = containers.find(c => c.name === button)
                 if (container) handleContainerSelect(container)
               }
-              else if (currentStep === 'side') handleSideSelect(button)
-              else if (currentStep === 'entree') handleEntreeSelect(button)
+              else if (currentStep === 'sides') handleSideSelect(button as MenuItem)
+              else if (currentStep === 'entrees') handleEntreeSelect(button as MenuItem)
               else if (['appetizers', 'drinks', 'extras'].includes(currentStep)) {
-                const item = items[currentStep.charAt(0).toUpperCase() + currentStep.slice(1)].find(i => i.name === button)
-                if (item) handleOtherItemSelect(item)
+                handleOtherItemSelect(button as MenuItem)
               }
             }}
           >
-            {button}
+            {typeof button === 'string' ? button : `${button.Menu_Item_Name} (ID: ${button.Menu_Item_ID})`}
           </Button>
         ))}
       </div>
@@ -238,131 +272,136 @@ export default function Component() {
   }
 
   return (
-    <div className="flex h-screen bg-dark-background text-white">
-      <div className="flex-1 flex flex-col">
-        <header className="flex justify-between items-center p-4 bg-panda-red">
-          <div className="flex items-center gap-2">
-            <Image src="/imgs/panda.png?height=40&width=40" alt="Logo" width={40} height={40} />
-            <h1 className="text-2xl font-bold">Panda Express</h1>
-          </div>
-          <Link href="/employee-login">
-            <Button variant="outline"><h1 style={{color: "black"}}>Log out</h1></Button>
-          </Link>
-        </header>
+    <>
+      <div className="flex h-screen bg-dark-background text-white">
+        <div className="flex-1 flex flex-col">
+          <header className="flex justify-between items-center p-4 bg-panda-red">
+            <div className="flex items-center gap-2">
+              <Image src="/imgs/panda.png?height=40&width=40" alt="Panda Express Logo" width={40} height={40} />
+              <h1 className="text-2xl font-bold">Panda Express</h1>
+            </div>
+            <Link href="/employee-login">
+              <Button variant="outline"><h1 style={{color: "black"}}>Log out</h1></Button>
+            </Link>
+          </header>
 
-        <div className="flex-1 p-4 grid grid-cols-[1fr_300px] gap-4">
-          <Card className="bg-dark-sidebar border-none">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <h2 className="text-xl font-bold text-white">{currentStep.charAt(0).toUpperCase() + currentStep.slice(1)}</h2>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => {
-                    if (['appetizers', 'drinks', 'extras'].includes(currentStep)) {
-                      setCurrentStep('category');
-                    } else if (currentStep === 'entree') {
-                      if (remainingEntrees < maxEntrees) {
-                        setRemainingEntrees(prev => prev + 1);
-                        setCurrentItem(prev => ({
-                          ...prev,
-                          entrees: prev.entrees?.slice(0, -1) || [],
-                          details: prev.details?.split(', Entree:').slice(0, -1).join(', Entree:')
-                        }));
-                      } else {
-                        setCurrentStep('side');
+          <div className="flex-1 p-4 grid grid-cols-[1fr_300px] gap-4">
+            <Card className="bg-dark-sidebar border-none">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <h2 className="text-xl font-bold text-white">{currentStep.charAt(0).toUpperCase() + currentStep.slice(1)}</h2>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      if (['appetizers', 'drinks', 'extras'].includes(currentStep)) {
+                        setCurrentStep('category');
+                      } else if (currentStep === 'entrees') {
+                        if (remainingEntrees < maxEntrees) {
+                          setRemainingEntrees(prev => prev + 1);
+                          setCurrentItem(prev => ({
+                            ...prev,
+                            entrees: prev.entrees?.slice(0, -1) || [],
+                            details: prev.details?.split(', Entree:').slice(0, -1).join(', Entree:')
+                          }));
+                        } else {
+                          setCurrentStep('sides');
+                        }
+                      } else if (currentStep === 'sides') {
+                        setCurrentStep('container');
+                      } else if (currentStep === 'container') {
+                        setCurrentStep('category');
                       }
-                    } else if (currentStep === 'side') {
-                      setCurrentStep('container');
-                    } else if (currentStep === 'container') {
-                      setCurrentStep('category');
-                    }
-                  }}
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                
+                    }}
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className="sr-only">Go back</span>
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      setCurrentItem({})
+                      setCurrentStep('category')
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Clear selection</span>
+                  </Button>
+                </div>
+              </CardHeader>
+
+              <CardContent>{renderNumpad()}</CardContent>
+              {currentStep === 'entrees' && (
+                <CardFooter>
+                  <p className="text-sm text-muted-foreground">
+                    Remaining entrees: {remainingEntrees}
+                  </p>
+                </CardFooter>
+              )}
+            </Card>
+            
+            <Card className="bg-dark-sidebar border-none">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <h2 className="text-xl font-bold text-white">Order Summary</h2>
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => {
-                    setCurrentItem({})
-                    setCurrentStep('category')
-                  }}
+                  onClick={() => setShowEditDialog(true)}
                 >
-                  <X className="h-4 w-4" />
+                  <Edit className="h-4 w-4" />
+                  <span className="sr-only">Edit order</span>
                 </Button>
-              </div>
-            </CardHeader>
+              </CardHeader>
 
-            <CardContent>{renderNumpad()}</CardContent>
-            {currentStep === 'entree' && (
-              <CardFooter>
-                <p className="text-sm text-muted-foreground">
-                  Remaining entrees: {remainingEntrees}
-                </p>
-              </CardFooter>
-            )}
-          </Card>
-          
-          <Card className="bg-dark-sidebar border-none">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <h2 className="text-xl font-bold text-white">Order Summary</h2>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setShowEditDialog(true)}
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-
-            <CardContent>
-              <ScrollArea className="h-[calc(100vh-400px)]">
-                {order.items.map((item, index) => (
-                  <div key={index} className="flex justify-between py-2 text-white">
-                    <div>
-                      <div>{item.name}</div>
-                      {item.details && (
-                        <div className="text-sm text-gray-400">{item.details}</div>
-                      )}
+              <CardContent>
+                <ScrollArea className="h-[calc(100vh-400px)]">
+                  {order.items.map((item, index) => (
+                    <div key={index} className="flex justify-between py-2 text-white">
+                      <div>
+                        <div>{item.name}</div>
+                        {item.details && (
+                          <div className="text-sm text-gray-400">{item.details}</div>
+                        )}
+                      </div>
+                      <div>${2}</div>
                     </div>
-                    <div>${item.price.toFixed(2)}</div>
-                  </div>
-                ))}
-              </ScrollArea>
-            </CardContent>
-            <CardFooter className="flex flex-col gap-2">
-              <div className="w-full flex justify-between text-white">
-                <span>Subtotal:</span>
-                <span>${order.total.toFixed(2)}</span>
-              </div>
-              <div className="w-full flex justify-between text-white">
-                <span>Tax:</span>
-                <span>${order.tax.toFixed(2)}</span>
-              </div>
-              <div className="w-full flex justify-between font-bold text-white">
-                <span>Total:</span>
-                <span>${(order.total + order.tax).toFixed(2)}</span>
-              </div>
+                  ))}
+                </ScrollArea>
+              </CardContent>
+              <CardFooter className="flex flex-col gap-2">
+                <div className="w-full flex justify-between text-white">
+                  <span>Subtotal:</span>
+                  <span>${order.total.toFixed(2)}</span>
+                </div>
+                <div className="w-full flex justify-between text-white">
+                  <span>Tax:</span>
+                  <span>${order.tax.toFixed(2)}</span>
+                </div>
+                <div className="w-full flex justify-between font-bold text-white">
+                  <span>Total:</span>
+                  <span>${(order.total + order.tax).toFixed(2)}</span>
+                </div>
 
-              <Button
-                className="w-full bg-confirm-button hover:bg-button-hover"
-                onClick={() => setShowCheckoutDialog(true)}
-                disabled={order.items.length === 0}
-              >
-                Checkout
-              </Button>
+                <Button
+className="w-full bg-confirm-button hover:bg-button-hover"
+                  onClick={() => setShowCheckoutDialog(true)}
+                  disabled={order.items.length === 0}
+                >
+                  Checkout
+                </Button>
 
-              <Button
-                variant="outline"
-                className="w-full hover:bg-button-hover"
-                onClick={() => setShowRefundDialog(true)}
-              >
-                Issue Refund
-              </Button>
-            </CardFooter>
-          </Card>
+                <Button
+                  variant="outline"
+                  className="w-full hover:bg-button-hover"
+                  onClick={() => setShowRefundDialog(true)}
+                >
+                  Issue Refund
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
         </div>
       </div>
 
@@ -412,12 +451,12 @@ export default function Component() {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label>Order Number</label>
-              <Input className="bg-dark-background border-gray-600 text-white" />
+              <label htmlFor="order-number">Order Number</label>
+              <Input id="order-number" className="bg-dark-background border-gray-600 text-white" />
             </div>
             <div className="space-y-2">
-              <label>Customer Name</label>
-              <Input className="bg-dark-background border-gray-600 text-white" />
+              <label htmlFor="customer-name">Customer Name</label>
+              <Input id="customer-name" className="bg-dark-background border-gray-600 text-white" />
             </div>
 
             <Button className="w-full bg-panda-red hover:bg-panda-red-light" onClick={() => setShowRefundDialog(false)}>
@@ -438,12 +477,14 @@ export default function Component() {
                 <span>{item.name} - ${item.price.toFixed(2)}</span>
                 <Button variant="destructive" size="icon" onClick={() => removeFromOrder(index)}>
                   <X className="h-4 w-4" />
+                  <span className="sr-only">Remove item</span>
                 </Button>
               </div>
             ))}
           </ScrollArea>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   )
 }
+
