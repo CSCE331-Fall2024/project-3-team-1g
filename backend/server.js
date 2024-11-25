@@ -110,13 +110,29 @@ app.post('/manager-view', async (req, res) => {
     //Inventory Tab
     //waits for the front end to run this command so it can render the data from the Ingredient_Inventory table, returns it in rows
     const inventoryRows = await client.query('SELECT * FROM "Ingredient_Inventory"');
-    console.log(inventoryRows.rows);
-    res.json(inventoryRows.rows);
+    const employeeRows = await client.query('SELECT * FROM "Employee"');
+    // console.log(inventoryRows.rows);
+
+    res.json({
+      inventory: inventoryRows.rows,
+      employees: employeeRows.rows,
+    });
   }
   catch (error) {
-    console.error('Error fetching Ingredient_Inventory data:', error.message);
+    console.error('Error fetching data:', error.message);
     res.status(500).json({ error: 'Internal Server Error' });
   }
+
+  // try {
+  //   //Employees Tab
+  //   const employeeRows = await client.query('SELECT * FROM "Employee"');
+  //   console.log(employeeRows.rows);
+  //   res.json(employeeRows.rows);
+  // }
+  // catch (error) {
+  //   console.error('Error fetching Employee data:', error.message);
+  //   res.status(500).json({ error: 'Internal Server Error' });
+  // }
 });
 
 app.post('/customer-view', async (req, res) => {
