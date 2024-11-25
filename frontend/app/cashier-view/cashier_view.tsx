@@ -105,7 +105,7 @@ export default function CashierView() {
   const handleContainerSelect = (container: typeof containers[0]) => {
     setCurrentItem({ 
       name: container.name, 
-      price: PRICES[container.name as keyof typeof PRICES],
+      price: 3,
       container_type: container.name,
       sides: [],
       entrees: [],
