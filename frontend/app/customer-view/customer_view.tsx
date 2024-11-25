@@ -6,10 +6,18 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
-import { Minus, Plus, X } from "lucide-react"
+import { Minus, Plus, X } from 'lucide-react'
 import { AnimatePresence, motion } from "framer-motion"
 import Image from 'next/image'
 import { Input } from "@/components/ui/input"
+
+type MenuItem = {
+  Menu_Item_ID: string;
+  Category: string;
+  Active_Inventory: number;
+  Serving_Size: number;
+  Units: string;
+};
 
 type Item = {
   name: string;
@@ -36,51 +44,18 @@ type Container = {
   sides: number;
   entrees: number;
   image: string;
+  price: number;
 };
 
 type CategoryItems = {
-  [key: string]: Item[];
+  [key: string]: MenuItem[];
 };
 
 const containers: Container[] = [
-  { name: 'Bowl', sides: 1, entrees: 1, image: '/imgs/1black.png?height=100&width=100' },
-  { name: 'Plate', sides: 1, entrees: 2, image: '/imgs/2black.png?height=100&width=100' },
-  { name: 'Bigger Plate', sides: 1, entrees: 3, image: '/imgs/3black.png?height=100&width=100' },
+  { name: 'Bowl', sides: 1, entrees: 1, image: '/imgs/1black.png?height=100&width=100', price: 8 },
+  { name: 'Plate', sides: 1, entrees: 2, image: '/imgs/2black.png?height=100&width=100', price: 10 },
+  { name: 'Bigger Plate', sides: 1, entrees: 3, image: '/imgs/3black.png?height=100&width=100', price: 12 },
 ];
-
-const sides = [
-  { name: 'White Rice', image: '/imgs/whiterice.png?height=100&width=100' },
-  { name: 'Fried Rice', image: '/imgs/friedrice.png?height=100&width=100' },
-  { name: 'Chow Mein', image: '/imgs/chowmein.png?height=100&width=100' },
-];
-
-const entrees = [
-  { name: 'Orange Chicken', image: '/imgs/orangechicken.png?height=100&width=100' },
-  { name: 'Beijing Beef', image: '/imgs/beijingbeef.png?height=100&width=100' },
-  { name: 'Broccoli Beef', image: '/imgs/broccolibeef.png?height=100&width=100' },
-  { name: 'String Bean Chicken Breast', image: '/imgs/stringbeanchicken.png?height=100&width=100' },
-  { name: 'Black Pepper Angus Steak', image: '/imgs/beef.png?height=100&width=100' },
-];
-
-const items: CategoryItems = {
-  Appetizers: [
-    { name: 'Egg Rolls', price: 1.95, image: '/imgs/eggrolls.png?height=100&width=100', quantity: 1,container_type: null,sides: null,entrees: null,appetizers: ['Egg Rolls'],drinks: null,extras: null,details: null},
-    { name: 'Spring Rolls', price: 1.95, image: '/imgs/springrolls.jpg?height=100&width=100', quantity: 1,container_type: null,sides: null,entrees: null,appetizers: ['Spring Rolls'],drinks: null,extras: null,details: null
-    },
-  ],
-  Drinks: [
-    { name: 'Fountain Drink', price: 2.45, image: '/imgs/drinks.png?height=100&width=100', quantity: 1,container_type: null,sides: null,entrees: null,appetizers: null,drinks: ['Fountain Drink'],extras: null,details: null
-    },
-    { name: 'Bottled Water', price: 2.15, image: '/imgs/waterbottle.png?height=100&width=100', quantity: 1,container_type: null,sides: null,entrees: null,appetizers: null,drinks: ['Bottled Water'],extras: null,details: null
-    },
-  ],
-  Extras: [
-    { name: 'Fortune Cookies', price: 0.95, image: '/imgs/fortunecookies.jpg?height=100&width=100', quantity: 1,container_type: null,sides: null,entrees: null,appetizers: null,drinks: null,extras: ['Fortune Cookies'],details: null
-    },
-    { name: 'Soy Sauce', price: 0.25, image: '/imgs/soysauce.png?height=100&width=100', quantity: 1,container_type: null,sides: null,entrees: null,appetizers: null,drinks: null,extras: ['Soy Sauce'],details: null
-    },
-  ],
-};
 
 export default function Component() {
   const backendUrl = 'http://localhost:3001'
@@ -95,13 +70,34 @@ export default function Component() {
   const [showRefundDialog, setShowRefundDialog] = useState(false)
   const [orderNumber, setOrderNumber] = useState('')
   const [customerName, setCustomerName] = useState('')
+  const [menuItems, setMenuItems] = useState<CategoryItems>({})
 
   useEffect(() => {
-    // Retrieve the user's name from local storage
     const name = localStorage.getItem('customerName');
     if (name) {
       setCustomerName(name);
     }
+
+    const fetchMenuItems = async () => {
+      try {
+        const response = await fetch(`${backendUrl}/get-menu-items`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!response.ok) {
+          console.log("Failed Fetch");
+          throw new Error('Failed to fetch menu items');
+        }
+        const data = await response.json();
+        setMenuItems(data);
+      } catch (error) {
+        console.error('Error fetching menu items:', error);
+      }
+    };
+
+    fetchMenuItems();
   }, []);
 
   const categories = ['Mains', 'Appetizers', 'Drinks', 'Extras']
@@ -145,7 +141,7 @@ export default function Component() {
         drinks: null,
         extras: null,
         details: `Side: ${selectedSides[0]}, Entrees: ${selectedEntrees.join(', ')}`,
-        price: 10.99,
+        price: selectedContainerObj.price,
         quantity: 1,
         image: selectedContainerObj.image
       }
@@ -167,8 +163,28 @@ export default function Component() {
     const itemsToAdd = Object.entries(quantities)
       .filter(([_, quantity]) => quantity > 0)
       .map(([itemName, quantity]): Item | null => {
-        const item = items[selectedCategory]?.find(i => i.name === itemName)
-        return item ? { ...item, quantity } : null
+        const menuItem = menuItems[selectedCategory]?.find(i => i.Menu_Item_ID === itemName)
+        if (menuItem) {
+          let price = 0;
+          if (selectedCategory === 'Appetizers') price = 3;
+          else if (selectedCategory === 'Drinks') price = 2;
+          else if (selectedCategory === 'Extras') price = 0;
+
+          return {
+            name: itemName,
+            container_type: null,
+            sides: null,
+            entrees: null,
+            appetizers: selectedCategory === 'Appetizers' ? [itemName] : null,
+            drinks: selectedCategory === 'Drinks' ? [itemName] : null,
+            extras: selectedCategory === 'Extras' ? [itemName] : null,
+            details: null,
+            price,
+            quantity,
+            image: `/imgs/${itemName.toLowerCase().replace(' ', '')}.png?height=100&width=100`
+          }
+        }
+        return null
       })
       .filter((item): item is Item => item !== null)
     
@@ -219,12 +235,6 @@ export default function Component() {
     }
   };
 
-  useEffect(() => {
-    if (selectedCategory !== 'Mains') {
-      setQuantities({})
-    }
-  }, [selectedCategory])
-
   return (
     <div className="flex h-screen bg-dark-background text-white">
       {/* Header */}
@@ -243,7 +253,6 @@ export default function Component() {
         <h2 className="text-xl font-bold mb-4">Hello, {customerName}</h2>
 
         <ScrollArea className="h-[calc(100vh-12rem)]">
-          {/* Creates buttons for each category that will store the current state (which tab is selected) and switch to the tab on button press */}
           {categories.map(category => (
             <Button
               key={category}
@@ -251,7 +260,7 @@ export default function Component() {
               className={`w-full justify-start mb-2 text-white ${selectedCategory === category ? 'bg-panda-orange hover:bg-panda-orange-light' : 'hover:bg-panda-red-light'}`}
               onClick={() => setSelectedCategory(category)}
             >
-              <span className = "text-lg font-semibold">
+              <span className="text-lg font-semibold">
                 {category}
               </span>
             </Button>
@@ -262,7 +271,6 @@ export default function Component() {
       {/* Ordering Section  */}
       <div className="flex-1 p-4 pt-20 overflow-auto">
         <h2 className="text-3xl font-bold mb-4">{selectedCategory}</h2>
-        {/* Mains Tab */}
         {selectedCategory === 'Mains' ? (
           <div className="space-y-8">
             {/* Container Selection Section */}
@@ -278,6 +286,7 @@ export default function Component() {
                     <CardContent className="p-4 flex flex-col items-center">
                       <Image src={container.image} alt={container.name} width={100} height={100} className="mb-2" />
                       <h3 className="text-lg font-semibold text-white">{container.name}</h3>
+                      <p className="text-white">${container.price.toFixed(2)}</p>
                     </CardContent>
                   </Card>
                 ))}
@@ -285,18 +294,17 @@ export default function Component() {
             </div>
             {/* Side Selection Section */}
             <div className={selectedContainer ? '' : 'opacity-50 pointer-events-none'}>
-              {/* Opacity low and sides not selectable unless container picked */}
               <h3 className="text-xl font-semibold mb-4">Select Side (1)</h3>
               <div className="grid grid-cols-3 gap-4">
-                {sides.map(side => (
+                {menuItems['Sides']?.map(side => (
                   <Card 
-                    key={side.name} 
-                    className={`cursor-pointer bg-container-card border-2 border-black ${selectedSides.includes(side.name) ? 'ring-2 ring-panda-gold' : ''}`}
-                    onClick={() => setSelectedSides([side.name])}
+                    key={side.Menu_Item_ID} 
+                    className={`cursor-pointer bg-container-card border-2 border-black ${selectedSides.includes(side.Menu_Item_ID) ? 'ring-2 ring-panda-gold' : ''}`}
+                    onClick={() => setSelectedSides([side.Menu_Item_ID])}
                   >
                     <CardContent className="p-4 flex flex-col items-center">
-                      <Image src={side.image} alt={side.name} width={100} height={100} className="mb-2" />
-                      <h3 className="text-lg font-semibold text-white">{side.name}</h3>
+                      <Image src={`/imgs/${side.Menu_Item_ID.toLowerCase().replace(' ', '')}.png?height=100&width=100`} alt={side.Menu_Item_ID} width={100} height={100} className="mb-2" />
+                      <h3 className="text-lg font-semibold text-white">{side.Menu_Item_ID}</h3>
                     </CardContent>
                   </Card>
                 ))}
@@ -306,22 +314,22 @@ export default function Component() {
             <div className={selectedContainer ? '' : 'opacity-50 pointer-events-none'}>
               <h3 className="text-xl font-semibold mb-4">Select Entrees ({containers.find(c => c.name === selectedContainer)?.entrees || 0})</h3>
               <div className="grid grid-cols-3 gap-4">
-                {entrees.map(entree => (
+                {menuItems['Entrees']?.map(entree => (
                   <Card 
-                    key={entree.name} 
-                    className={`cursor-pointer bg-container-card border-2 border-black ${selectedEntrees.includes(entree.name) ? 'ring-2 ring-panda-gold' : ''}`}
+                    key={entree.Menu_Item_ID} 
+                    className={`cursor-pointer bg-container-card border-2 border-black ${selectedEntrees.includes(entree.Menu_Item_ID) ? 'ring-2 ring-panda-gold' : ''}`}
                     onClick={() => {
                       const maxEntrees = containers.find(c => c.name === selectedContainer)?.entrees || 0
                       setSelectedEntrees(prev => 
-                        prev.includes(entree.name) 
-                          ? prev.filter(e => e !== entree.name)
-                          : prev.length < maxEntrees ? [...prev, entree.name] : prev
+                        prev.includes(entree.Menu_Item_ID) 
+                          ? prev.filter(e => e !== entree.Menu_Item_ID)
+                          : prev.length < maxEntrees ? [...prev, entree.Menu_Item_ID] : prev
                       )
                     }}
                   >
                     <CardContent className="p-4 flex flex-col items-center">
-                      <Image src={entree.image} alt={entree.name} width={100} height={100} className="mb-2" />
-                      <h3 className="text-lg font-semibold text-white">{entree.name}</h3>
+                      <Image src={`/imgs/${entree.Menu_Item_ID.toLowerCase().replace(' ', '')}.png?height=100&width=100`} alt={entree.Menu_Item_ID} width={100} height={100} className="mb-2" />
+                      <h3 className="text-lg font-semibold text-white">{entree.Menu_Item_ID}</h3>
                     </CardContent>
                   </Card>
                 ))}
@@ -342,18 +350,20 @@ export default function Component() {
           <>
             {/* Appetizers/Drinks/Extras Tabs */}
             <div className="grid grid-cols-3 gap-4">
-              {selectedCategory && items[selectedCategory]?.map((item: Item) => (
-                <Card key={item.name} className="flex flex-col justify-between bg-container-card border-2 border-black">
+              {menuItems[selectedCategory]?.map((item: MenuItem) => (
+                <Card key={item.Menu_Item_ID} className="flex flex-col justify-between bg-container-card border-2 border-black">
                   <CardContent className="p-4 flex flex-col items-center">
-                    <Image src={item.image} alt={item.name} width={100} height={100} className="mb-2" />
-                    <h3 className="font-bold text-white">{item.name}</h3>
-                    <p className="text-white">${item.price.toFixed(2)}</p>
+                    <Image src={`/imgs/${item.Menu_Item_ID.toLowerCase().replace(' ', '')}.png?height=100&width=100`} alt={item.Menu_Item_ID} width={100} height={100} className="mb-2" />
+                    <h3 className="font-bold text-white">{item.Menu_Item_ID}</h3>
+                    <p className="text-white">
+                      ${selectedCategory === 'Appetizers' ? '3.00' : selectedCategory === 'Drinks' ? '2.00' : '0.00'}
+                    </p>
                     <div className="flex items-center justify-between mt-2">
-                      <Button variant="outline" size="icon" onClick={() => handleQuantityChange(item.name, -1)}>
+                      <Button variant="outline" size="icon" onClick={() => handleQuantityChange(item.Menu_Item_ID, -1)}>
                         <Minus className="h-4 w-4" />
                       </Button>
-                      <span className="mx-2 text-white">{quantities[item.name] || 0}</span>
-                      <Button variant="outline" size="icon" onClick={() => handleQuantityChange(item.name, 1)}>
+                      <span className="mx-2 text-white">{quantities[item.Menu_Item_ID] || 0}</span>
+                      <Button variant="outline" size="icon" onClick={() => handleQuantityChange(item.Menu_Item_ID, 1)}>
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
@@ -483,3 +493,4 @@ export default function Component() {
     </div>
   )
 }
+
