@@ -365,7 +365,7 @@ export default function CashierView() {
                           <div className="text-sm text-gray-400">{item.details}</div>
                         )}
                       </div>
-                      <div>${2}</div>
+                      <div>${item.price}</div>
                     </div>
                   ))}
                 </ScrollArea>
@@ -418,7 +418,7 @@ className="w-full bg-confirm-button hover:bg-button-hover"
                     <div>{item.name}</div>
                     {item.details && <div className="text-sm text-gray-400">{item.details}</div>}
                   </div>
-                  <div>${item.price.toFixed(2)}</div>
+                  <div>${item.price}</div>
                 </div>
               ))}
             </div>
@@ -474,7 +474,7 @@ className="w-full bg-confirm-button hover:bg-button-hover"
           <ScrollArea className="h-[50vh]">
             {order.items.map((item, index) => (
               <div key={index} className="flex justify-between items-center mb-2">
-                <span>{item.name} - ${item.price.toFixed(2)}</span>
+                <span>{item.name} - ${item.price}</span>
                 <Button variant="destructive" size="icon" onClick={() => removeFromOrder(index)}>
                   <X className="h-4 w-4" />
                   <span className="sr-only">Remove item</span>
