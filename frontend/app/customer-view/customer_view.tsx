@@ -58,7 +58,7 @@ const containers: Container[] = [
 ];
 
 export default function Component() {
-  const backendUrl = 'http://localhost:3001'
+  const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
   const [selectedCategory, setSelectedCategory] = useState('Mains')
   const [cart, setCart] = useState<Cart>({ items: [], total: 0, tax: 0 })
   const [selectedContainer, setSelectedContainer] = useState<string | null>(null)
@@ -303,7 +303,7 @@ export default function Component() {
                     onClick={() => setSelectedSides([side.Menu_Item_ID])}
                   >
                     <CardContent className="p-4 flex flex-col items-center">
-                      <Image src={`/imgs/${side.Menu_Item_ID.toLowerCase().replace(' ', '')}.png?height=100&width=100`} alt={side.Menu_Item_ID} width={100} height={100} className="mb-2" />
+                      <Image src={`/imgs/${side.Menu_Item_ID.toLowerCase().replaceAll(' ', '')}.png?height=100&width=100`} alt={side.Menu_Item_ID} width={100} height={100} className="mb-2" />
                       <h3 className="text-lg font-semibold text-white">{side.Menu_Item_ID}</h3>
                     </CardContent>
                   </Card>
@@ -328,7 +328,7 @@ export default function Component() {
                     }}
                   >
                     <CardContent className="p-4 flex flex-col items-center">
-                      <Image src={`/imgs/${entree.Menu_Item_ID.toLowerCase().replace(' ', '')}.png?height=100&width=100`} alt={entree.Menu_Item_ID} width={100} height={100} className="mb-2" />
+                      <Image src={`/imgs/${entree.Menu_Item_ID.toLowerCase().replaceAll(' ', '')}.png?height=100&width=100`} alt={entree.Menu_Item_ID} width={100} height={100} className="mb-2" />
                       <h3 className="text-lg font-semibold text-white">{entree.Menu_Item_ID}</h3>
                     </CardContent>
                   </Card>
@@ -353,7 +353,7 @@ export default function Component() {
               {menuItems[selectedCategory]?.map((item: MenuItem) => (
                 <Card key={item.Menu_Item_ID} className="flex flex-col justify-between bg-container-card border-2 border-black">
                   <CardContent className="p-4 flex flex-col items-center">
-                    <Image src={`/imgs/${item.Menu_Item_ID.toLowerCase().replace(' ', '')}.png?height=100&width=100`} alt={item.Menu_Item_ID} width={100} height={100} className="mb-2" />
+                    <Image src={`/imgs/${item.Menu_Item_ID.toLowerCase().replaceAll(' ', '')}.png?height=100&width=100`} alt={item.Menu_Item_ID} width={100} height={100} className="mb-2" />
                     <h3 className="font-bold text-white">{item.Menu_Item_ID}</h3>
                     <p className="text-white">
                       ${selectedCategory === 'Appetizers' ? '3.00' : selectedCategory === 'Drinks' ? '2.00' : '0.00'}

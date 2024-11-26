@@ -53,7 +53,7 @@ const PRICES = {
 };
 
 export default function CashierView() {
-  const backendUrl = 'http://localhost:3001'
+  const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
   const [currentStep, setCurrentStep] = useState<'category' | 'container' | 'sides' | 'entrees' | 'appetizers' | 'drinks' | 'extras'>('category')
   const [order, setOrder] = useState<OrderState>({ items: [], total: 0, tax: 0 })
   const [currentItem, setCurrentItem] = useState<Partial<Item>>({})

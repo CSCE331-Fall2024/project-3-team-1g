@@ -109,7 +109,7 @@ const images: Record<string, string> = {
 
 export default function Component() {
   //for testing locally
-  const backendUrl = 'http://localhost:3001'
+  const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
   //for deployment
   //const backendUrl = ''
   const [selectedSection, setSelectedSection] = useState<string>('Inventory')
