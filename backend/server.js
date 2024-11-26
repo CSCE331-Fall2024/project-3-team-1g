@@ -149,6 +149,16 @@ app.post('/manager-view', async (req, res) => {
     const employeeRows = await client.query('SELECT * FROM "Employee"');
     // console.log(inventoryRows.rows); //debugging
 
+    if (action==='addEmp'){
+      await client.query(
+        'INSERT INTO "Employee" ("Employee_ID", "Name", "Type", "Hourly_Salary") VALUES ($1, $2, $3, $4)',
+        [id, stock, units, cpu]
+      );
+
+      // console.log('Adding inventory item with:', { id, stock, units, cpu });
+      return res.json({ message: 'Employee added successfully' });
+    }
+
     res.json({
       inventory: inventoryRows.rows,
       employees: employeeRows.rows,

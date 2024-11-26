@@ -100,8 +100,7 @@ export default function Component() {
   //const backendUrl = ''
   const [selectedSection, setSelectedSection] = useState<string>('Inventory')
   const [selectedCategory, setSelectedCategory] = useState<string>('Sides')
-  const [showAddDialog, setShowAddDialog] = useState<boolean>(false)
-  const [showEditDialog, setShowEditDialog] = useState<boolean>(false)
+ 
   const [selectedReport, setSelectedReport] = useState<string>('X')
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(inventoryData)
   const [employees, setEmployees] = useState<Employee[]>(employeeData)
@@ -109,15 +108,24 @@ export default function Component() {
   const [employeeName, setEmployeeName] = useState('');
 
   const [selectedItemForEdit, setSelectedItemForEdit] = useState<InventoryItem | null>(null);
-
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedItemForDelete, setSelectedItemForDelete] = useState<InventoryItem | null>(null);
+
+  const [showAddDialog, setShowAddDialog] = useState<boolean>(false)
+  const [showEditDialog, setShowEditDialog] = useState<boolean>(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  
 
   //react states for Inventory Item
   const [id, setId] = React.useState('');
   const [stock, setStock] = React.useState(0);
   const [units, setUnits] = React.useState('');
   const [cpu, setCpu] = React.useState(0);
+
+  //react states for Employee Item
+  const [empID, setempID] = React.useState(0);
+  const [empName, setempName] = React.useState('');
+  const [empType, setempType] = React.useState('');
+  const [empSal, setempSal] = React.useState(0);
 
   //gets Ingredient_Inventory table data from database to populate table in Inventory tab
   const fetchInventory = async () => {
@@ -299,7 +307,7 @@ export default function Component() {
       console.log(data.message);
       alert('Inventory item deleted successfully!');
     }
-    
+
     catch (error) {
       if (error instanceof Error) {
         console.error('Error deleting item:', error.message);
@@ -310,10 +318,40 @@ export default function Component() {
     }
   }
 
-  // const handleAddEmployee = (newEmployee: Omit<Employee, 'id' | 'status'>) => {
-  //   setEmployees([...employees, { id: `00${employees.length + 1}`, ...newEmployee, status: 'Active' }])
-  //   setShowAddDialog(false)
-  // }
+  const handleAddEmployee = async (id: number, stock: string, units: string, cpu: number) => {
+    try {
+      const response = await fetch(new URL('/manager-view', backendUrl), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'addEmp',
+          id, //didn't change these values because it's easier and i'm lazy; just have to remember
+          stock,
+          units,
+          cpu,
+        }),
+      });
+    
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add employee');
+      }
+
+      const data = await response.json();
+      console.log(data.message);
+      alert('Employee added successfully!');
+      setShowAddDialog(false);
+    }
+
+    catch (error) {
+      if (error instanceof Error)
+        console.error('Error adding employee:', error.message);
+      else
+        console.error('Unexpected error:', error);
+    }
+  }
 
   // const handleEditEmployee = (editedEmployee: Employee) => {
   //   setEmployees(employees.map(emp => emp.id === editedEmployee.id ? editedEmployee : emp))
@@ -501,10 +539,14 @@ export default function Component() {
         </TableBody>
       </Table>
       <div className="flex gap-2">
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg" onClick={() => fetchEmployees()}>
+          <RefreshCcw className="mr-2 h-4 w-4" />
+          Refresh Table
+        </Button>
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
             <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg">
-              <UserPlus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-4 w-4" />
               Add Employee
             </Button>
           </DialogTrigger>
@@ -513,9 +555,11 @@ export default function Component() {
               <DialogTitle>Add Employee</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <Input placeholder="Name" className="bg-[#1C1C1C] border-none" />
-              <Input placeholder="Role" className="bg-[#1C1C1C] border-none" />
-              <Button className="w-full flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg" /*onClick={() => handleAddEmployee({ name: 'New Employee', role: 'Cashier' })}*/>Add Employee</Button>
+              <Input type="number" placeholder="Employee_ID" className="bg-[#1C1C1C] border-none" onChange={(e) => setempID(Number(e.target.value))}/>
+              <Input type="string" placeholder="Name" className="bg-[#1C1C1C] border-none" onChange={(e) => setempName(e.target.value)}/>
+              <Input type="string" placeholder="Type"className="bg-[#1C1C1C] border-none" onChange={(e) => setempType(e.target.value)}/>
+              <Input type="number" placeholder="Hourly_Salary" className="bg-[#1C1C1C] border-none" onChange={(e) => setempSal(Number(e.target.value))}/>
+              <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleAddEmployee(empID, empName, empType, empSal)}>Add Employee</Button>
             </div>
           </DialogContent>
         </Dialog>
