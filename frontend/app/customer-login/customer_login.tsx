@@ -36,7 +36,6 @@ export default function CustomerLogin() {
       localStorage.setItem('customerName', data.name);
       
       alert(data.message)
-      // Redirect to customer page
       router.push('/customer-view') 
       
     } catch (err) {
@@ -50,13 +49,10 @@ export default function CustomerLogin() {
 
   const handleGoogleLoginSuccess = (response) => {
     console.log(response);
-    // Check if response contains the necessary profile information
     if (response && response.credential) {
       const decodedToken = JSON.parse(atob(response.credential.split('.')[1]));
-      const username = decodedToken.name; // Extract the username from the decoded token
-      // Store the username in local storage as the global name
+      const username = decodedToken.name; 
       localStorage.setItem('customerName', username);
-      // Redirect to the customer page
       router.push('/customer-view')
     } else {
       console.error('Google login response does not contain the expected profile information');
