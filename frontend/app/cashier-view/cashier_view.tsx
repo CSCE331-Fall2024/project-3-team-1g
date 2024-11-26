@@ -44,9 +44,12 @@ type CategoryItems = {
 }
 
 const PRICES = {
-  Bowl: 8.99,
-  Plate: 10.99,
-  'Bigger Plate': 12.99,
+  'Bowl': 8,
+  'Plate': 10,
+  'Bigger Plate': 12,
+  'Appetizers': 3,
+  'Drinks': 2,
+  'Extras': 0,
 };
 
 export default function CashierView() {
@@ -105,7 +108,7 @@ export default function CashierView() {
   const handleContainerSelect = (container: typeof containers[0]) => {
     setCurrentItem({ 
       name: container.name, 
-      price: 3,
+      price: PRICES[container.name as keyof typeof PRICES],
       container_type: container.name,
       sides: [],
       entrees: [],
@@ -150,7 +153,7 @@ export default function CashierView() {
     const newItem: Item = {
       name: item.Menu_Item_Name,
       menu_item_id: item.Menu_Item_ID,
-      price: item.Menu_Item_Price,
+      price: PRICES[item.Category as keyof typeof PRICES],
       image: '/placeholder.svg?height=100&width=100',
       quantity: 1,
       container_type: null,
