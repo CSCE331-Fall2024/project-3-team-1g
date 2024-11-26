@@ -181,10 +181,14 @@ app.post('/manager-view', async (req, res) => {
       return res.json({ message: 'Employee deleted successfully' });
     }
 
+    //QUERY FOR FETCHING MENU_ITEM TABLE
+    const menuRows = await client.query('SELECT * FROM "Menu_Item"');
+    // console.log(menuItems.rows); //debugging
 
     res.json({
       inventory: inventoryRows.rows,
       employees: employeeRows.rows,
+      menu: menuRows.rows,
     });
   }
   catch (error) {

@@ -35,14 +35,12 @@ type ReportItem = {
 }
 
 type MenuItem = {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-}
-
-type MenuItems = {
-  [key: string]: MenuItem[];
+  Menu_Item_ID: string;
+  Category: string;
+  Active_Inventory: number; 
+  Serving_Size: number;
+  Units: string;
+  // Image: string;
 }
 
 const inventoryData: InventoryItem[] = [
@@ -76,22 +74,22 @@ const reportData: { [key: string]: ReportItem[] } = {
   ],
 }
 
-const menuItems: MenuItems = {
-  Sides: [
-    { id: 's1', name: 'White Rice', price: 2.50, image: '/placeholder.svg?height=100&width=100' },
-    { id: 's2', name: 'Fried Rice', price: 2.99, image: '/placeholder.svg?height=100&width=100' },
-    { id: 's3', name: 'Chow Mein', price: 2.99, image: '/placeholder.svg?height=100&width=100' },
-  ],
-  Entrees: [
-    { id: 'e1', name: 'Orange Chicken', price: 3.99, image: '/placeholder.svg?height=100&width=100' },
-    { id: 'e2', name: 'Beijing Beef', price: 3.99, image: '/placeholder.svg?height=100&width=100' },
-    { id: 'e3', name: 'Broccoli Beef', price: 3.99, image: '/placeholder.svg?height=100&width=100' },
-  ],
-  Appetizers: [
-    { id: 'a1', name: 'Egg Roll', price: 1.95, image: '/placeholder.svg?height=100&width=100' },
-    { id: 'a2', name: 'Spring Roll', price: 1.95, image: '/placeholder.svg?height=100&width=100' },
-  ],
+const menuItemData: MenuItem[] = [
+  { Menu_Item_ID: 'sidex', Category: 'Sides', Active_Inventory: 0, Serving_Size: 0, Units: 'x'},
+  { Menu_Item_ID: 'entreex', Category: 'Entrees', Active_Inventory: 0, Serving_Size: 0, Units: 'x'},
+  { Menu_Item_ID: 'appx', Category: 'Appetizers', Active_Inventory: 0, Serving_Size: 0, Units: 'x'},
+  { Menu_Item_ID: 'extrax', Category: 'Extras', Active_Inventory: 0, Serving_Size: 0, Units: 'x'},
+  { Menu_Item_ID: 'drinkx', Category: 'Drinks', Active_Inventory: 0, Serving_Size: 0, Units: 'x'},
+]
+
+const sideImages = {
+  "Chow Mein": "",
+  "Fried Rice": "",
+  "White Rice": "",
+  "Super Greens": "",
 }
+
+
 
 export default function Component() {
   //for testing locally
@@ -104,8 +102,9 @@ export default function Component() {
   const [selectedReport, setSelectedReport] = useState<string>('X')
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(inventoryData)
   const [employees, setEmployees] = useState<Employee[]>(employeeData)
-  const [menuItemsState, setMenuItemsState] = useState<MenuItems>(menuItems)
-  const [employeeName, setEmployeeName] = useState('');
+  // const [menuItemsState, setMenuItemsState] = useState<MenuItems>(menuItems)
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(menuItemData)
+  const [employeeName, setEmployeeName] = useState('')
 
   const [selectedItemForEdit, setSelectedItemForEdit] = useState<InventoryItem | null>(null);
   const [selectedItemForDelete, setSelectedItemForDelete] = useState<InventoryItem | null>(null);
@@ -198,7 +197,44 @@ export default function Component() {
       }
       catch (error) {
         if (error instanceof Error)
-          console.error('Error fetching inventory:', error.message);
+          console.error('Error fetching employees:', error.message);
+        else
+          console.error('Unexpected error:', error);
+      }
+    };
+  }
+
+  const fetchMenu = async () => {
+    if (selectedSection === 'Menu'){
+      try {
+        const response = await fetch(new URL('/manager-view', backendUrl), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        //checks if HTTP request was successful, throws status code if not
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        //gets the Content-Type header from the server's response, uses that to determine format of the returned data
+        const contentType = response.headers.get('content-type');
+
+        //if the Content-Type header is missing or doesn't contain application/json, throws an error (we expect the response to be JSON format)
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Invalid content type, expected JSON');
+        }
+
+        const data = await response.json();
+        // console.log(data);
+
+        setMenuItems(data.menu);
+      }
+      catch (error) {
+        if (error instanceof Error)
+          console.error('Error fetching menu:', error.message);
         else
           console.error('Unexpected error:', error);
       }
@@ -215,6 +251,8 @@ export default function Component() {
       fetchInventory();
     else if (selectedSection === 'Employees')
       fetchEmployees();
+    else if (selectedSection === 'Menu')
+      fetchMenu();
   }, [selectedSection]);
 
   const handleAddInventoryItem = async (id: string, stock: number, units: string, cpu: number) => {
@@ -423,28 +461,28 @@ export default function Component() {
     }
   }
 
-  const handleAddMenuItem = (category: string, newItem: Omit<MenuItem, 'id'>) => {
-    setMenuItemsState({
-      ...menuItemsState,
-      [category]: [...menuItemsState[category], { id: `${category[0].toLowerCase()}${menuItemsState[category].length + 1}`, ...newItem }]
-    })
-    setShowAddDialog(false)
-  }
+  // const handleAddMenuItem = (category: string, newItem: Omit<MenuItem, 'id'>) => {
+  //   setMenuItemsState({
+  //     ...menuItemsState,
+  //     [category]: [...menuItemsState[category], { id: `${category[0].toLowerCase()}${menuItemsState[category].length + 1}`, ...newItem }]
+  //   })
+  //   setShowAddDialog(false)
+  // }
 
-  const handleEditMenuItem = (category: string, editedItem: MenuItem) => {
-    setMenuItemsState({
-      ...menuItemsState,
-      [category]: menuItemsState[category].map(item => item.id === editedItem.id ? editedItem : item)
-    })
-    setShowEditDialog(false)
-  }
+  // const handleEditMenuItem = (category: string, editedItem: MenuItem) => {
+  //   setMenuItemsState({
+  //     ...menuItemsState,
+  //     [category]: menuItemsState[category].map(item => item.id === editedItem.id ? editedItem : item)
+  //   })
+  //   setShowEditDialog(false)
+  // }
 
-  const handleDeleteMenuItem = (category: string, id: string) => {
-    setMenuItemsState({
-      ...menuItemsState,
-      [category]: menuItemsState[category].filter(item => item.id !== id)
-    })
-  }
+  // const handleDeleteMenuItem = (category: string, id: string) => {
+  //   setMenuItemsState({
+  //     ...menuItemsState,
+  //     [category]: menuItemsState[category].filter(item => item.id !== id)
+  //   })
+  // }
 
   const renderInventoryContent = () => (
     <div className="space-y-4">
@@ -730,62 +768,79 @@ export default function Component() {
     </div>
   )
 
-  const renderMenuContent = () => (
-    <div className="space-y-6">
-      <div className="flex gap-2">
-        {Object.keys(menuItemsState).map((category) => (
-          <Button
-            key={category}
-            variant={selectedCategory === category ? "secondary" : "ghost"}
-            className={`text-white text-lg ${selectedCategory === category ? 'bg-[#FF9636] hover:bg-[#FFA54F]' : 'hover:bg-[#E03A3C]'}`}
-            onClick={() => setSelectedCategory(category)}
-          >
-            {category}
-          </Button>
-        ))}
-      </div>
-      <div className="grid grid-cols-3 gap-4">
-        {menuItemsState[selectedCategory].map((item) => (
-          <Card key={item.id} className="cursor-pointer bg-container-card border-2 border-black">
-            <CardContent className="p-4 flex flex-col items-center">
-              <Image src={item.image} alt={item.name} width={100} height={100} className="mb-2" />
-              <h3 className="font-bold text-white">{item.name}</h3>
-              <p className="text-white">${item.price.toFixed(2)}</p>
-              <div className="flex gap-2 mt-2">
-                <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(true)}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => handleDeleteMenuItem(selectedCategory, item.id)}>
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      <div className="flex gap-2">
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogTrigger asChild>
-            <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Item
+  const renderMenuContent = () => {
+    const categories = Array.from(new Set(menuItemData.map((item) => item.Category)));
+  
+    return (
+      <div className="space-y-6">
+        {/* Category tabs based on Category values in Menu_Item database */}
+        <div className="flex gap-2">
+          {categories.map((category) => (
+            <Button
+              key={category}
+              variant={selectedCategory === category ? "secondary" : "ghost"}
+              className={`text-white text-lg ${
+                selectedCategory === category
+                  ? 'bg-[#FF9636] hover:bg-[#FFA54F]'
+                  : 'hover:bg-[#E03A3C]'
+              }`}
+              onClick={() => setSelectedCategory(category)}
+            >
+              {category}
             </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-[#2C2C2C] text-white">
-            <DialogHeader>
-              <DialogTitle>Add Menu Item</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <Input placeholder="Item Name" className="bg-[#1C1C1C] border-none" />
-              <Input type="number" placeholder="Price" className="bg-[#1C1C1C] border-none" />
-              <Input placeholder="Image URL" className="bg-[#1C1C1C] border-none" />
-              <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleAddMenuItem(selectedCategory, { name: 'New Item', price: 0, image: '/placeholder.svg?height=100&width=100' })}>Add Item</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+          ))}
+        </div>
+  
+        {/* Render item cards for each category */}
+        <div className="grid grid-cols-3 gap-4">
+          {/* Filters by category */}
+          {menuItems
+            .filter((item) => item.Category === selectedCategory)
+            .map((item) => (
+              <Card key={item.Menu_Item_ID} className="cursor-pointer bg-container-card border-2 border-black">
+                <CardContent className="p-4 flex flex-col items-center">
+                  {/* <Image
+                    src={item.Image}
+                    alt={item.Menu_Item_ID}
+                    width={100}
+                    height={100}
+                    className="mb-2"
+                  /> */}
+                  <h3 className="font-bold text-white">{item.Menu_Item_ID}</h3>
+                  <div className="flex gap-2 mt-2">
+                    <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(true)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+        </div>
+  
+        {/* Add Item Button */}
+        <div className="flex gap-2">
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogTrigger asChild>
+              <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Item
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-[#2C2C2C] text-white">
+              <DialogHeader>
+                <DialogTitle>Add Menu Item</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Input placeholder="Item Name" className="bg-[#1C1C1C] border-none" />
+                <Input type="number" placeholder="Price" className="bg-[#1C1C1C] border-none" />
+                <Input placeholder="Image URL" className="bg-[#1C1C1C] border-none" />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
-    </div>
-  )
+    );
+  };
 
   return (
     // code for main panel that contains current section's contents
