@@ -138,7 +138,7 @@ app.post('/manager-view', async (req, res) => {
 });
 
 // List of menu items to exclude
-const excludedItems = ['(Special) GYATS', 'SEASONAL Bourbon Chicken', 'SEASONAL Salt Pepper Chicken', 'Bowl', 'Plate', 'Bigger Plate', 'Appetizer Container', 'Drink', 'AppetizerGYATS', 'Brocolli Beef'];
+const excludedItems = ['Swag','(Special) GYATS', 'SEASONAL Bourbon Chicken', 'SEASONAL Salt Pepper Chicken', 'Bowl', 'Plate', 'Bigger Plate', 'Appetizer Container', 'Drink', 'AppetizerGYATS', 'Brocolli Beef'];
 
 app.post('/get-menu-items', async (req, res) => {
   try {
