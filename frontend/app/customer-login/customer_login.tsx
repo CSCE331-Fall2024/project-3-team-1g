@@ -6,12 +6,16 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
+import { translateText } from '@/lib/translate'
 
 export default function CustomerLogin() {
   const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [translated, setTranslated] = useState(false)
+  const [translatedText, setTranslatedText] = useState("")
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -47,12 +51,26 @@ export default function CustomerLogin() {
     }
   }
 
-  const handleGoogleLogin = async () => {
-    // Add Google OAuth logic here
-  }
+  const handleGoogleLoginSuccess = (response) => {
+    console.log(response);
+    // Handle Google login success
+    // You can send the response token to your backend for further processing
+  };
+
+  const handleGoogleLoginFailure = (error) => {
+    console.error(error);
+    // Handle Google login failure
+  };
+
+  const handleTranslate = async () => {
+    const textToTranslate = "Customer Login"; // Add more text as needed
+    const translated = await translateText(textToTranslate, 'es');
+    setTranslatedText(translated);
+    setTranslated(true);
+  };
 
   return (
-    <>
+    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
       <header className="bg-dark-background text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
@@ -70,7 +88,7 @@ export default function CustomerLogin() {
         <div className="container mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-80px)] p-4">
           <h1 className="text-4xl font-bold text-white mb-8">We Wok For You</h1>
           <div className="w-full max-w-md bg-[#DC0032] rounded-lg p-6 space-y-6">
-            <h2 className="text-2xl font-bold text-white text-center">Customer Login</h2>
+            <h2 className="text-2xl font-bold text-white text-center">{translated ? translatedText : "Customer Login"}</h2>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="username" className="text-white">
@@ -103,18 +121,16 @@ export default function CustomerLogin() {
                 Login
               </Button>
             </form>
-            <Button
-              onClick={handleGoogleLogin}
-              className="w-full bg-white text-gray-600 hover:bg-gray-100"
-            >
-              Sign in with Google
-            </Button>
+            <GoogleLogin
+              onSuccess={handleGoogleLoginSuccess}
+              onFailure={handleGoogleLoginFailure}
+            />
           </div>
-          <Button className="mt-4 bg-[#DC0032] text-white hover:bg-[#b8002a]">
+          <Button onClick={handleTranslate} className="mt-4 bg-[#DC0032] text-white hover:bg-[#b8002a]">
             Click para Español
           </Button>
         </div>
       </main>
-    </>
+    </GoogleOAuthProvider>
   )
 }
