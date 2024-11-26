@@ -108,6 +108,11 @@ export default function Component() {
   const [menuItemsState, setMenuItemsState] = useState<MenuItems>(menuItems)
   const [employeeName, setEmployeeName] = useState('');
 
+  const [selectedItemForEdit, setSelectedItemForEdit] = useState<InventoryItem | null>(null);
+
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedItemForDelete, setSelectedItemForDelete] = useState<InventoryItem | null>(null);
+
   //react states for Inventory Item
   const [id, setId] = React.useState('');
   const [stock, setStock] = React.useState(0);
@@ -205,29 +210,30 @@ export default function Component() {
   const handleAddInventoryItem = async (id: string, stock: number, units: string, cpu: number) => {
     try {
       const response = await fetch(new URL('/manager-view', backendUrl), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        id,
-        stock,
-        units,
-        cpu,
-      }),
-    });
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'add',
+          id,
+          stock,
+          units,
+          cpu,
+        }),
+      });
     
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to add inventory item');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add inventory item');
+      }
+
+      const data = await response.json();
+      console.log(data.message);
+      alert('Inventory item added successfully!');
+      setShowAddDialog(false);
     }
 
-    const data = await response.json();
-    console.log(data.message);
-    alert('Inventory item added successfully!');
-    setShowAddDialog(false);
-
-    }
     catch (error) {
       if (error instanceof Error)
         console.error('Error adding item:', error.message);
@@ -236,13 +242,72 @@ export default function Component() {
     }
   };
 
-  const handleEditInventoryItem = (editedItem: InventoryItem) => {
-    setInventoryItems(inventoryItems.map(item => item.Ingredient_Inventory_ID === editedItem.Ingredient_Inventory_ID ? editedItem : item))
-    setShowEditDialog(false)
-  }
+  const handleEditInventoryItem = async (id: string, stock: number, units: string, cpu: number) => {
+    try {
+      const response = await fetch(new URL('/manager-view', backendUrl), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'edit',
+          id,
+          stock,
+          units,
+          cpu,
+        }),
+      });
+    
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to edit inventory item');
+      }
 
-  const handleDeleteInventoryItem = (id: string) => {
-    setInventoryItems(inventoryItems.filter(item => item.Ingredient_Inventory_ID !== id))
+      const data = await response.json();
+      console.log(data.message);
+      alert('Inventory item edited successfully!');
+      setShowAddDialog(false);
+    }
+    
+    catch (error) {
+      if (error instanceof Error)
+        console.error('Error editing item:', error.message);
+      else
+        console.error('Unexpected error:', error);
+    }
+  };
+
+  const handleDeleteInventoryItem = async (id: string) => {
+    try {
+      const response = await fetch(new URL('/manager-view', backendUrl), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'delete', 
+          id,
+        }),
+      });
+    
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete inventory item');
+      }
+    
+      const data = await response.json();
+      console.log(data.message);
+      alert('Inventory item deleted successfully!');
+    }
+    
+    catch (error) {
+      if (error instanceof Error) {
+        console.error('Error deleting item:', error.message);
+      }
+      else {
+        console.error('Unexpected error:', error);
+      }
+    }
   }
 
   // const handleAddEmployee = (newEmployee: Omit<Employee, 'id' | 'status'>) => {
@@ -301,13 +366,75 @@ export default function Component() {
               <TableCell>{item.Stock}</TableCell>
               <TableCell>{item.Units}</TableCell>
               <TableCell>${item.Cost_Per_Unit ? item.Cost_Per_Unit.toFixed(2) : '0.00'}</TableCell>
-              <TableCell>
-                <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(true)}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => handleDeleteInventoryItem(item.Ingredient_Inventory_ID)}>
-                  <Trash className="h-4 w-4" />
-                </Button>
+              <TableCell> 
+                {/* Edit Button with Dialog */}
+                <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={() => {
+                      setSelectedItemForEdit(item);
+                      setShowEditDialog(true);
+                    }}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  {selectedItemForEdit && (
+                  <DialogContent className="bg-[#2C2C2C] text-white">
+                    <DialogHeader>
+                      <DialogTitle>Edit {selectedItemForEdit.Ingredient_Inventory_ID}</DialogTitle>
+                    </DialogHeader>
+                    <div className = "space-y-4">
+                      <Input type="number" placeholder="Stock" className="bg-[#1C1C1C] border-none" onChange={(e) => setStock(Number(e.target.value))}/>
+                      <Input type="string" placeholder="Units"className="bg-[#1C1C1C] border-none" onChange={(e) => setUnits(e.target.value)}/>
+                      <Input type="number" placeholder="Cost_Per_Unit" className="bg-[#1C1C1C] border-none" onChange={(e) => setCpu(Number(e.target.value))}/>
+                      <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleEditInventoryItem(selectedItemForEdit.Ingredient_Inventory_ID, stock, units, cpu)}>Edit Item</Button>
+                    </div>
+                  </DialogContent>
+                  )}
+                </Dialog>
+                {/* Delete Button with Confirmation Dialog */}
+                <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setSelectedItemForDelete(item); // Set the item to be deleted
+                        setShowDeleteDialog(true);
+                      }}
+                        >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  {selectedItemForDelete && (
+                    <DialogContent className="bg-[#2C2C2C] text-white">
+                      <DialogHeader>
+                        <DialogTitle>
+                          Are you sure you want to delete{" "}
+                          {selectedItemForDelete.Ingredient_Inventory_ID}?
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <Button
+                          className="w-full bg-gray-600 hover:bg-gray-500"
+                          onClick={() => setShowDeleteDialog(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          className="w-full bg-panda-red hover:bg-[#b52528]"
+                          onClick={() => {
+                            handleDeleteInventoryItem(
+                              selectedItemForDelete.Ingredient_Inventory_ID
+                            );
+                            setShowDeleteDialog(false);
+                          }}
+                        >
+                          Confirm Delete
+                        </Button>
+                    </div>
+                  </DialogContent>
+                  )}
+                </Dialog>
               </TableCell>
             </TableRow>
           ))}

@@ -107,22 +107,45 @@ app.post('/manager-login', async (req, res) => {
 
 app.post('/manager-view', async (req, res) => {
   try {
+    //QUERY FOR FETCHING INGREDIENT_INVENTORY TABLE
     const inventoryRows = await client.query('SELECT * FROM "Ingredient_Inventory"');
+    
+    const { action, id, stock, units, cpu } = req.body;
     // console.log('Received data:', req.body); //debugging
-    const { id, stock, units, cpu } = req.body;
 
-    if (id && stock && units && cpu) {
-      const addItem = `
-        INSERT INTO "Ingredient_Inventory" 
-        ("Ingredient_Inventory_ID", "Stock", "Units", "Cost_Per_Unit")
-        VALUES ($1, $2, $3, $4)
-      `;
-      // console.log('Inserting inventory item with:', { id, stock, units, cpu });
-      await client.query(addItem, [id, stock, units, cpu]);
+    //METHOD FOR ADDING NEW ITEMS TO INVENTORY
+    if (action === 'add') {
+      await client.query(
+        'INSERT INTO "Ingredient_Inventory" ("Ingredient_Inventory_ID", "Stock", "Units", "Cost_Per_Unit") VALUES ($1, $2, $3, $4)',
+        [id, stock, units, cpu]
+      );
 
+      // console.log('Adding inventory item with:', { id, stock, units, cpu });
       return res.json({ message: 'Inventory item added successfully' });
     }
 
+    //METHOD FOR EDITING NEW ITEMS IN INVENTORY
+    else if (action ==='edit'){
+      await client.query(
+        'UPDATE "Ingredient_Inventory" SET "Stock" = $2, "Units" = $3, "Cost_Per_Unit" = $4 WHERE "Ingredient_Inventory_ID" = $1',
+        [id, stock, units, cpu]
+      );
+
+      // console.log('Editing inventory item with:', { id, stock, units, cpu });
+      return res.json({ message: 'Inventory item edited successfully' });
+    }
+
+    //METHOD FOR DELETING ITEMS IN INVENTORY
+    else if (action ==='delete'){
+      await client.query(
+        'DELETE FROM "Ingredient_Inventory" WHERE "Ingredient_Inventory_ID" = $1', [id],
+      );
+
+      // console.log('Deleting inventory item with:', { id, stock, units, cpu });
+      return res.json({ message: 'Inventory item deleted successfully' });
+    }
+
+    //QUERY FOR FETCHING EMPLOYEE TABLE
     const employeeRows = await client.query('SELECT * FROM "Employee"');
     // console.log(inventoryRows.rows); //debugging
 
