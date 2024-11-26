@@ -154,7 +154,7 @@ export default function CashierView() {
       price: PRICES[item.Category as keyof typeof PRICES],
       image: '/placeholder.svg?height=100&width=100',
       quantity: 1,
-      container_type: item.Category,
+      container_type: null,
       sides: null,
       entrees: null,
       appetizers: item.Category === 'Appetizers' ? [item.Menu_Item_Name] : null,
