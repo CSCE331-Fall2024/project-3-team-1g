@@ -149,6 +149,7 @@ app.post('/manager-view', async (req, res) => {
     const employeeRows = await client.query('SELECT * FROM "Employee"');
     // console.log(inventoryRows.rows); //debugging
 
+    //METHOD FOR ADDING NEW EMPLOYEE
     if (action==='addEmp'){
       await client.query(
         'INSERT INTO "Employee" ("Employee_ID", "Name", "Type", "Hourly_Salary") VALUES ($1, $2, $3, $4)',
@@ -158,6 +159,28 @@ app.post('/manager-view', async (req, res) => {
       // console.log('Adding inventory item with:', { id, stock, units, cpu });
       return res.json({ message: 'Employee added successfully' });
     }
+
+    //METHOD FOR EDITING EMPLOYEE
+    else if (action==='editEmp'){
+      await client.query(
+        'UPDATE "Employee" SET "Name" = $2, "Type" = $3, "Hourly_Salary" = $4 WHERE "Employee_ID" = $1',
+        [id, stock, units, cpu]
+      );
+
+      // console.log('Editing employee item with:', { id, stock, units, cpu });
+      return res.json({ message: 'Employee edited successfully' });
+    }
+
+    //METHOD FOR DELETING EMPLOYEE
+    else if (action ==='deleteEmp'){
+      await client.query(
+        'DELETE FROM "Employee" WHERE "Employee_ID" = $1', [id],
+      );
+
+      // console.log('Deleting employee with:', { id, stock, units, cpu });
+      return res.json({ message: 'Employee deleted successfully' });
+    }
+
 
     res.json({
       inventory: inventoryRows.rows,

@@ -109,6 +109,8 @@ export default function Component() {
 
   const [selectedItemForEdit, setSelectedItemForEdit] = useState<InventoryItem | null>(null);
   const [selectedItemForDelete, setSelectedItemForDelete] = useState<InventoryItem | null>(null);
+  const [selectedEmployeeForEdit, setSelectedEmployeeForEdit] = useState<Employee | null>(null);
+  const [selectedEmployeeForDelete, setSelectedEmployeeForDelete] = useState<Employee | null>(null);
 
   const [showAddDialog, setShowAddDialog] = useState<boolean>(false)
   const [showEditDialog, setShowEditDialog] = useState<boolean>(false)
@@ -353,14 +355,73 @@ export default function Component() {
     }
   }
 
-  // const handleEditEmployee = (editedEmployee: Employee) => {
-  //   setEmployees(employees.map(emp => emp.id === editedEmployee.id ? editedEmployee : emp))
-  //   setShowEditDialog(false)
-  // }
+  const handleEditEmployee = async (id: number, stock: string, units: string, cpu: number) => {
+    try {
+      const response = await fetch(new URL('/manager-view', backendUrl), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'editEmp',
+          id,
+          stock,
+          units,
+          cpu,
+        }),
+      });
+    
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to edit employee');
+      }
 
-  // const handleDeleteEmployee = (id: string) => {
-  //   setEmployees(employees.filter(emp => emp.id !== id))
-  // }
+      const data = await response.json();
+      console.log(data.message);
+      alert('Employee edited successfully!');
+      setShowAddDialog(false);
+    }
+    
+    catch (error) {
+      if (error instanceof Error)
+        console.error('Error editing item:', error.message);
+      else
+        console.error('Unexpected error:', error);
+    }
+  }
+
+  const handleDeleteEmployee = async (id: number) => {
+    try {
+      const response = await fetch(new URL('/manager-view', backendUrl), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'deleteEmp', 
+          id,
+        }),
+      });
+    
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete employee');
+      }
+    
+      const data = await response.json();
+      console.log(data.message);
+      alert('Employee deleted successfully!');
+    }
+
+    catch (error) {
+      if (error instanceof Error) {
+        console.error('Error deleting employee:', error.message);
+      }
+      else {
+        console.error('Unexpected error:', error);
+      }
+    }
+  }
 
   const handleAddMenuItem = (category: string, newItem: Omit<MenuItem, 'id'>) => {
     setMenuItemsState({
@@ -527,12 +588,74 @@ export default function Component() {
               <TableCell>{employee.Type}</TableCell>
               <TableCell>{employee.Hourly_Salary}</TableCell>
               <TableCell>
-                <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(true)}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" /*onClick={() => handleDeleteEmployee(employee.id)}*/>
-                  <Trash className="h-4 w-4" />
-                </Button>
+                {/* Edit Button with Dialog */}
+                <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={() => {
+                      setSelectedEmployeeForEdit(employee);
+                      setShowEditDialog(true);
+                    }}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  {selectedEmployeeForEdit && (
+                  <DialogContent className="bg-[#2C2C2C] text-white">
+                    <DialogHeader>
+                      <DialogTitle>Edit {selectedEmployeeForEdit.Employee_ID}</DialogTitle>
+                    </DialogHeader>
+                    <div className = "space-y-4">
+                      <Input type="string" placeholder="Name" className="bg-[#1C1C1C] border-none" onChange={(e) => setempName(e.target.value)}/>
+                      <Input type="string" placeholder="Type"className="bg-[#1C1C1C] border-none" onChange={(e) => setempType(e.target.value)}/>
+                      <Input type="number" placeholder="Hourly_Salary" className="bg-[#1C1C1C] border-none" onChange={(e) => setempSal(Number(e.target.value))}/>
+                      <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleEditEmployee(selectedEmployeeForEdit.Employee_ID, empName, empType, empSal)}>Edit Employee</Button>
+                    </div>
+                  </DialogContent>
+                  )}
+                  {/* Delete Button with Confirmation Dialog */}
+                  <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedEmployeeForDelete(employee); // Set the item to be deleted
+                          setShowDeleteDialog(true);
+                        }}
+                          >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    {selectedEmployeeForDelete && (
+                      <DialogContent className="bg-[#2C2C2C] text-white">
+                        <DialogHeader>
+                          <DialogTitle>
+                            Are you sure you want to delete{" "}
+                            {selectedEmployeeForDelete.Employee_ID}?
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <Button
+                            className="w-full bg-gray-600 hover:bg-gray-500"
+                            onClick={() => setShowDeleteDialog(false)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            className="w-full bg-panda-red hover:bg-[#b52528]"
+                            onClick={() => {
+                              handleDeleteEmployee(
+                                selectedEmployeeForDelete.Employee_ID
+                              );
+                              setShowDeleteDialog(false);
+                            }}
+                          >
+                            Confirm Delete
+                          </Button>
+                      </div>
+                    </DialogContent>
+                    )}
+                  </Dialog>
+                </Dialog>
               </TableCell>
             </TableRow>
           ))}
