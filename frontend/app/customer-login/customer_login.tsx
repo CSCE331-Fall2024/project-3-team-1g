@@ -47,7 +47,7 @@ export default function CustomerLogin() {
     }
   }
 
-  const handleGoogleLoginSuccess = (response) => {
+  const handleGoogleLoginSuccess = (response: any) => {
     console.log(response);
     if (response && response.credential) {
       const decodedToken = JSON.parse(atob(response.credential.split('.')[1]));
@@ -59,13 +59,13 @@ export default function CustomerLogin() {
     }
   };
 
-  const handleGoogleLoginFailure = (error) => {
-    console.error(error);
+  const handleGoogleLoginFailure = () => {
+    console.error('Google login failed');
     // Handle Google login failure
   };
 
   return (
-    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
+    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
       <header className="bg-dark-background text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
@@ -118,7 +118,7 @@ export default function CustomerLogin() {
             </form>
             <GoogleLogin
               onSuccess={handleGoogleLoginSuccess}
-              onFailure={handleGoogleLoginFailure}
+              onError={handleGoogleLoginFailure}
             />
           </div>
           <Button className="mt-4 bg-[#DC0032] text-white hover:bg-[#b8002a]">
