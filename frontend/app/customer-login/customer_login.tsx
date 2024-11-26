@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
 
 export default function CustomerLogin() {
   const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
@@ -35,8 +36,7 @@ export default function CustomerLogin() {
       localStorage.setItem('customerName', data.name);
       
       alert(data.message)
-      // Redirect to page.tsx 
-      router.push('../customer-view') 
+      router.push('/customer-view') 
       
     } catch (err) {
       if (err instanceof Error) {
@@ -47,12 +47,25 @@ export default function CustomerLogin() {
     }
   }
 
-  const handleGoogleLogin = async () => {
-    // Add Google OAuth logic here
-  }
+  const handleGoogleLoginSuccess = (response) => {
+    console.log(response);
+    if (response && response.credential) {
+      const decodedToken = JSON.parse(atob(response.credential.split('.')[1]));
+      const username = decodedToken.name; 
+      localStorage.setItem('customerName', username);
+      router.push('/customer-view')
+    } else {
+      console.error('Google login response does not contain the expected profile information');
+    }
+  };
+
+  const handleGoogleLoginFailure = (error) => {
+    console.error(error);
+    // Handle Google login failure
+  };
 
   return (
-    <>
+    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
       <header className="bg-dark-background text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
@@ -103,18 +116,16 @@ export default function CustomerLogin() {
                 Login
               </Button>
             </form>
-            <Button
-              onClick={handleGoogleLogin}
-              className="w-full bg-white text-gray-600 hover:bg-gray-100"
-            >
-              Sign in with Google
-            </Button>
+            <GoogleLogin
+              onSuccess={handleGoogleLoginSuccess}
+              onFailure={handleGoogleLoginFailure}
+            />
           </div>
           <Button className="mt-4 bg-[#DC0032] text-white hover:bg-[#b8002a]">
             Click para Español
           </Button>
         </div>
       </main>
-    </>
+    </GoogleOAuthProvider>
   )
 }

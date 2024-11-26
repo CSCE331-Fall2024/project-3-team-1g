@@ -137,6 +137,32 @@ app.post('/manager-view', async (req, res) => {
   }
 });
 
+// List of menu items to exclude
+const excludedItems = ['(Special) GYATS', 'SEASONAL Bourbon Chicken', 'SEASONAL Salt Pepper Chicken', 'Bowl', 'Plate', 'Bigger Plate', 'Appetizer Container', 'Drink', 'AppetizerGYATS', 'Brocolli Beef'];
+
+app.post('/get-menu-items', async (req, res) => {
+  try {
+    const { rows } = await client.query(`
+      SELECT * FROM "Menu_Item"
+      WHERE "Active_Inventory" > 0
+      AND "Menu_Item_ID" NOT IN (${excludedItems.map((_, i) => `$${i + 1}`).join(', ')})
+    `, excludedItems);
+
+    const categorizedItems = rows.reduce((acc, item) => {
+      if (!acc[item.Category]) {
+        acc[item.Category] = [];
+      }
+      acc[item.Category].push(item);
+      return acc;
+    }, {});
+
+    res.json(categorizedItems);
+  } catch (error) {
+    console.error('Database Error:', error);
+    res.status(500).json({ error: 'Failed to fetch menu items' });
+  }
+});
+
 app.post('/customer-view', async (req, res) => {
   const { items, total, tax } = req.body;
   console.log("Recievet items: ", items);

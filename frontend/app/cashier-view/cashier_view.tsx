@@ -44,9 +44,12 @@ type CategoryItems = {
 }
 
 const PRICES = {
-  Bowl: 8.99,
-  Plate: 10.99,
-  'Bigger Plate': 12.99,
+  'Bowl': 8,
+  'Plate': 10,
+  'Bigger Plate': 12,
+  'Appetizers': 3,
+  'Drinks': 2,
+  'Extras': 0,
 };
 
 export default function CashierView() {
@@ -105,7 +108,7 @@ export default function CashierView() {
   const handleContainerSelect = (container: typeof containers[0]) => {
     setCurrentItem({ 
       name: container.name, 
-      price: 3,
+      price: PRICES[container.name as keyof typeof PRICES],
       container_type: container.name,
       sides: [],
       entrees: [],
@@ -124,7 +127,7 @@ export default function CashierView() {
     setCurrentItem(prev => ({
       ...prev,
       sides: [side.Menu_Item_Name],
-      details: `Side: ${side.Menu_Item_Name} (ID: ${side.Menu_Item_ID})`
+      details: `Sides: ${side.Menu_Item_ID}`
     }))
     setCurrentStep('entrees')
   }
@@ -133,9 +136,7 @@ export default function CashierView() {
     setCurrentItem(prev => ({
       ...prev,
       entrees: [...(prev.entrees || []), entree.Menu_Item_Name],
-      details: prev.details 
-        ? `${prev.details}, Entree: ${entree.Menu_Item_Name} (ID: ${entree.Menu_Item_ID})` 
-        : `Entree: ${entree.Menu_Item_Name} (ID: ${entree.Menu_Item_ID})`
+      details: prev.details ? `${prev.details}, ${entree.Menu_Item_ID}` : `Entrees: ${entree.Menu_Item_ID}`
     }));
     setRemainingEntrees(prev => prev - 1);
     
@@ -150,7 +151,7 @@ export default function CashierView() {
     const newItem: Item = {
       name: item.Menu_Item_Name,
       menu_item_id: item.Menu_Item_ID,
-      price: item.Menu_Item_Price,
+      price: PRICES[item.Category as keyof typeof PRICES],
       image: '/placeholder.svg?height=100&width=100',
       quantity: 1,
       container_type: null,
@@ -159,7 +160,7 @@ export default function CashierView() {
       appetizers: item.Category === 'Appetizers' ? [item.Menu_Item_Name] : null,
       drinks: item.Category === 'Drinks' ? [item.Menu_Item_Name] : null,
       extras: item.Category === 'Extras' ? [item.Menu_Item_Name] : null,
-      details: `${item.Menu_Item_Name} (ID: ${item.Menu_Item_ID})`,
+      details: `${item.Menu_Item_ID}`,
     }
     addToOrder(newItem)
     setCurrentStep('category')
@@ -264,7 +265,7 @@ export default function CashierView() {
               }
             }}
           >
-            {typeof button === 'string' ? button : `${button.Menu_Item_Name} (ID: ${button.Menu_Item_ID})`}
+            {typeof button === 'string' ? button : `${button.Menu_Item_ID}`}
           </Button>
         ))}
       </div>
@@ -297,7 +298,7 @@ export default function CashierView() {
                       if (['appetizers', 'drinks', 'extras'].includes(currentStep)) {
                         setCurrentStep('category');
                       } else if (currentStep === 'entrees') {
-                        if (remainingEntrees < maxEntrees) {
+                        if (remainingEntrees <= maxEntrees) {
                           setRemainingEntrees(prev => prev + 1);
                           setCurrentItem(prev => ({
                             ...prev,
@@ -360,7 +361,7 @@ export default function CashierView() {
                   {order.items.map((item, index) => (
                     <div key={index} className="flex justify-between py-2 text-white">
                       <div>
-                        <div>{item.name}</div>
+                        <div>{item.container_type}</div>
                         {item.details && (
                           <div className="text-sm text-gray-400">{item.details}</div>
                         )}
@@ -392,13 +393,13 @@ className="w-full bg-confirm-button hover:bg-button-hover"
                   Checkout
                 </Button>
 
-                <Button
+                {/* <Button
                   variant="outline"
                   className="w-full hover:bg-button-hover"
                   onClick={() => setShowRefundDialog(true)}
                 >
                   Issue Refund
-                </Button>
+                </Button> */}
               </CardFooter>
             </Card>
           </div>
