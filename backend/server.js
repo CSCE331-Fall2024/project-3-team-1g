@@ -185,6 +185,17 @@ app.post('/manager-view', async (req, res) => {
     const menuRows = await client.query('SELECT * FROM "Menu_Item"');
     // console.log(menuItems.rows); //debugging
 
+    const { item_id, category, inventory, servsize, item_units } = req.body;
+    if (action==='addMen'){
+      await client.query(
+        'INSERT INTO "Menu_Item" ("Menu_Item_ID", "Category", "Active_Inventory", "Serving_Size", "Units") VALUES ($1, $2, $3, $4, $5)',
+        [item_id, category, inventory, servsize, item_units]
+      );
+
+      // console.log('Adding menu item with:', { item_id, category, inventory, servsize, item_units });
+      return res.json({ message: 'Menu item added successfully' });
+    }
+
     res.json({
       inventory: inventoryRows.rows,
       employees: employeeRows.rows,

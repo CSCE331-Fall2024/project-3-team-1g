@@ -40,7 +40,7 @@ type MenuItem = {
   Active_Inventory: number; 
   Serving_Size: number;
   Units: string;
-  // Image: string;
+  Image: string;
 }
 
 const inventoryData: InventoryItem[] = [
@@ -75,21 +75,37 @@ const reportData: { [key: string]: ReportItem[] } = {
 }
 
 const menuItemData: MenuItem[] = [
-  { Menu_Item_ID: 'sidex', Category: 'Sides', Active_Inventory: 0, Serving_Size: 0, Units: 'x'},
-  { Menu_Item_ID: 'entreex', Category: 'Entrees', Active_Inventory: 0, Serving_Size: 0, Units: 'x'},
-  { Menu_Item_ID: 'appx', Category: 'Appetizers', Active_Inventory: 0, Serving_Size: 0, Units: 'x'},
-  { Menu_Item_ID: 'extrax', Category: 'Extras', Active_Inventory: 0, Serving_Size: 0, Units: 'x'},
-  { Menu_Item_ID: 'drinkx', Category: 'Drinks', Active_Inventory: 0, Serving_Size: 0, Units: 'x'},
+  { Menu_Item_ID: 'sidex', Category: 'Sides', Active_Inventory: 0, Serving_Size: 0, Units: 'x', Image:''},
+  { Menu_Item_ID: 'entreex', Category: 'Entrees', Active_Inventory: 0, Serving_Size: 0, Units: 'x', Image:''},
+  { Menu_Item_ID: 'appx', Category: 'Appetizers', Active_Inventory: 0, Serving_Size: 0, Units: 'x', Image:''},
+  { Menu_Item_ID: 'extrax', Category: 'Extras', Active_Inventory: 0, Serving_Size: 0, Units: 'x', Image:''},
+  { Menu_Item_ID: 'drinkx', Category: 'Drinks', Active_Inventory: 0, Serving_Size: 0, Units: 'x', Image:''},
 ]
 
-const sideImages = {
-  "Chow Mein": "",
-  "Fried Rice": "",
-  "White Rice": "",
-  "Super Greens": "",
-}
-
-
+const images: Record<string, string> = {
+  "Chow Mein": '/imgs/chowmein.png',
+  "Fried Rice": "/imgs/friedrice.png",
+  "White Rice": "/imgs/whiterice.png",
+  "Super Greens": "/imgs/supergreens.png",
+  "Grilled Chicken": "/imgs/grilledchicken.png",
+  "Spring Rolls": "/imgs/springrolls.jpg",
+  "Egg Rolls": "/imgs/eggrolls.png",
+  "Chicken Potstickers": "/imgs/chickenpotstickers.png",
+  "Bowl": "/imgs/1black.png",
+  "Plate": "/imgs/2black.png",
+  "Bigger Plate": "/imgs/3black.png",
+  "Appetizer Container": "/imgs/eggrolls.png",
+  "Drink": "/imgs/drinks.png",
+  "Cream Cheese Rangoon": "/imgs/crabrangoon.png",
+  "Orange Chicken": "/imgs/orangechicken.png",
+  "Beijing Beef": "/imgs/beijingbeef.png",
+  "Broccoli Beef": "/imgs/broccolibeef.png",
+  "String Bean Chicken Breast": "/imgs/stringbeanchicken.png",
+  "Bottled Water": "/imgs/waterbottle.png",
+  "Fountain Drink": "/imgs/drinks.png",
+  "Fortune Cookies": "/imgs/fortunecookies.jpg",
+  "Soy Sauce": "/imgs/soysauce.png",
+};
 
 export default function Component() {
   //for testing locally
@@ -114,7 +130,6 @@ export default function Component() {
   const [showAddDialog, setShowAddDialog] = useState<boolean>(false)
   const [showEditDialog, setShowEditDialog] = useState<boolean>(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  
 
   //react states for Inventory Item
   const [id, setId] = React.useState('');
@@ -122,11 +137,18 @@ export default function Component() {
   const [units, setUnits] = React.useState('');
   const [cpu, setCpu] = React.useState(0);
 
-  //react states for Employee Item
-  const [empID, setempID] = React.useState(0);
-  const [empName, setempName] = React.useState('');
-  const [empType, setempType] = React.useState('');
-  const [empSal, setempSal] = React.useState(0);
+  //react states for Employee
+  const [empID, setEmpID] = React.useState(0);
+  const [empName, setEmpName] = React.useState('');
+  const [empType, setEmpType] = React.useState('');
+  const [empSal, setEmpSal] = React.useState(0);
+
+  //react states for Menu Item
+  const [menID, setMenID] = React.useState('');
+  const [menCategory, setMenCategory] = React.useState('');
+  const [menInventory, setMenInventory] = React.useState(0);
+  const [menServSize, setMenServSize] = React.useState(0);
+  const [menUnits, setMenUnits] = React.useState('');
 
   //gets Ingredient_Inventory table data from database to populate table in Inventory tab
   const fetchInventory = async () => {
@@ -231,6 +253,9 @@ export default function Component() {
         // console.log(data);
 
         setMenuItems(data.menu);
+
+        const menuWithImages = assignImagesToMenuItems(data.menu);
+        setMenuItems(menuWithImages);
       }
       catch (error) {
         if (error instanceof Error)
@@ -240,6 +265,13 @@ export default function Component() {
       }
     };
   }
+
+  const assignImagesToMenuItems = (menuItems: MenuItem[]): MenuItem[] => {
+    return menuItems.map((item) => ({
+      ...item,
+      Image: images[item.Menu_Item_ID] || '/imgs/pandaseasonal.png',
+    }));
+  };
 
   useEffect(() => {
     const name = localStorage.getItem('employeeName');
@@ -461,13 +493,41 @@ export default function Component() {
     }
   }
 
-  // const handleAddMenuItem = (category: string, newItem: Omit<MenuItem, 'id'>) => {
-  //   setMenuItemsState({
-  //     ...menuItemsState,
-  //     [category]: [...menuItemsState[category], { id: `${category[0].toLowerCase()}${menuItemsState[category].length + 1}`, ...newItem }]
-  //   })
-  //   setShowAddDialog(false)
-  // }
+  const handleAddMenuItem = async (item_id: string, category: string, inventory: number, servsize: number, item_units: string) => {
+    try {
+      const response = await fetch(new URL('/manager-view', backendUrl), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'addMen',
+          item_id,
+          category,
+          inventory,
+          servsize,
+          item_units,
+        }),
+      });
+    
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add menu item');
+      }
+
+      const data = await response.json();
+      console.log(data.message);
+      alert('Menu item added successfully!');
+      setShowAddDialog(false);
+    }
+
+    catch (error) {
+      if (error instanceof Error)
+        console.error('Error adding menu item:', error.message);
+      else
+        console.error('Unexpected error:', error);
+    }
+  }
 
   // const handleEditMenuItem = (category: string, editedItem: MenuItem) => {
   //   setMenuItemsState({
@@ -613,9 +673,9 @@ export default function Component() {
           <TableRow className="text-lg bg-white hover:bg-current">
             <TableHead className="text-black">ID</TableHead>
             <TableHead className="text-black">Name</TableHead>
-            <TableHead className="text-black">Role</TableHead>
+            <TableHead className="text-black">Type</TableHead>
             <TableHead className="text-black">Status</TableHead>
-            <TableHead className="text-black">Actions</TableHead>
+            <TableHead className="text-black">Hourly Salary</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -642,9 +702,9 @@ export default function Component() {
                       <DialogTitle>Edit {selectedEmployeeForEdit.Employee_ID}</DialogTitle>
                     </DialogHeader>
                     <div className = "space-y-4">
-                      <Input type="string" placeholder="Name" className="bg-[#1C1C1C] border-none" onChange={(e) => setempName(e.target.value)}/>
-                      <Input type="string" placeholder="Type"className="bg-[#1C1C1C] border-none" onChange={(e) => setempType(e.target.value)}/>
-                      <Input type="number" placeholder="Hourly_Salary" className="bg-[#1C1C1C] border-none" onChange={(e) => setempSal(Number(e.target.value))}/>
+                      <Input type="string" placeholder="Name" className="bg-[#1C1C1C] border-none" onChange={(e) => setEmpName(e.target.value)}/>
+                      <Input type="string" placeholder="Type"className="bg-[#1C1C1C] border-none" onChange={(e) => setEmpType(e.target.value)}/>
+                      <Input type="number" placeholder="Hourly_Salary" className="bg-[#1C1C1C] border-none" onChange={(e) => setEmpSal(Number(e.target.value))}/>
                       <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleEditEmployee(selectedEmployeeForEdit.Employee_ID, empName, empType, empSal)}>Edit Employee</Button>
                     </div>
                   </DialogContent>
@@ -704,7 +764,7 @@ export default function Component() {
           <RefreshCcw className="mr-2 h-4 w-4" />
           Refresh Table
         </Button>
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
             <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg">
               <Plus className="mr-2 h-4 w-4" />
@@ -716,10 +776,10 @@ export default function Component() {
               <DialogTitle>Add Employee</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <Input type="number" placeholder="Employee_ID" className="bg-[#1C1C1C] border-none" onChange={(e) => setempID(Number(e.target.value))}/>
-              <Input type="string" placeholder="Name" className="bg-[#1C1C1C] border-none" onChange={(e) => setempName(e.target.value)}/>
-              <Input type="string" placeholder="Type"className="bg-[#1C1C1C] border-none" onChange={(e) => setempType(e.target.value)}/>
-              <Input type="number" placeholder="Hourly_Salary" className="bg-[#1C1C1C] border-none" onChange={(e) => setempSal(Number(e.target.value))}/>
+              <Input type="number" placeholder="Employee_ID" className="bg-[#1C1C1C] border-none" onChange={(e) => setEmpID(Number(e.target.value))}/>
+              <Input type="string" placeholder="Name" className="bg-[#1C1C1C] border-none" onChange={(e) => setEmpName(e.target.value)}/>
+              <Input type="string" placeholder="Type"className="bg-[#1C1C1C] border-none" onChange={(e) => setEmpType(e.target.value)}/>
+              <Input type="number" placeholder="Hourly_Salary" className="bg-[#1C1C1C] border-none" onChange={(e) => setEmpSal(Number(e.target.value))}/>
               <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleAddEmployee(empID, empName, empType, empSal)}>Add Employee</Button>
             </div>
           </DialogContent>
@@ -799,13 +859,13 @@ export default function Component() {
             .map((item) => (
               <Card key={item.Menu_Item_ID} className="cursor-pointer bg-container-card border-2 border-black">
                 <CardContent className="p-4 flex flex-col items-center">
-                  {/* <Image
+                  <Image
                     src={item.Image}
                     alt={item.Menu_Item_ID}
                     width={100}
                     height={100}
                     className="mb-2"
-                  /> */}
+                  />
                   <h3 className="font-bold text-white">{item.Menu_Item_ID}</h3>
                   <div className="flex gap-2 mt-2">
                     <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(true)}>
@@ -817,13 +877,17 @@ export default function Component() {
             ))}
         </div>
   
-        {/* Add Item Button */}
+        {/* Refresh table and add item button */}
         <div className="flex gap-2">
+          <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg" onClick={() => fetchMenu()}>
+            <RefreshCcw className="mr-2 h-4 w-4" />
+            Refresh Table
+          </Button>
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
               <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg">
                 <Plus className="mr-2 h-4 w-4" />
-                Add Item
+                Add Menu Item
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-[#2C2C2C] text-white">
@@ -831,9 +895,12 @@ export default function Component() {
                 <DialogTitle>Add Menu Item</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
-                <Input placeholder="Item Name" className="bg-[#1C1C1C] border-none" />
-                <Input type="number" placeholder="Price" className="bg-[#1C1C1C] border-none" />
-                <Input placeholder="Image URL" className="bg-[#1C1C1C] border-none" />
+                <Input type="string" placeholder="Menu_Item_ID" className="bg-[#1C1C1C] border-none" onChange={(e) => setMenID(e.target.value)}/>
+                <Input type="string" placeholder="Category" className="bg-[#1C1C1C] border-none" onChange={(e) => setMenCategory(e.target.value)}/>
+                <Input type="number" placeholder="Active_Inventory"className="bg-[#1C1C1C] border-none" onChange={(e) => setMenInventory(Number(e.target.value))}/>
+                <Input type="number" placeholder="Serving_Size" className="bg-[#1C1C1C] border-none" onChange={(e) => setMenServSize(Number(e.target.value))}/>
+                <Input type="string" placeholder="Units" className="bg-[#1C1C1C] border-none" onChange={(e) => setMenUnits(e.target.value)}/>
+                <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleAddMenuItem(menID, menCategory, menInventory, menServSize, menUnits)}>Add Menu Item</Button>
               </div>
             </DialogContent>
           </Dialog>
