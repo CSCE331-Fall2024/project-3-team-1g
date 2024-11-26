@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, RefreshCcw, UserPlus, FileText, Edit, Trash} from "lucide-react"
 import Image from 'next/image'
 import { Input } from "@/components/ui/input"
+import { useRouter } from 'next/navigation'
 
 // Define types for our data structures
 type InventoryItem = {
@@ -20,10 +21,10 @@ type InventoryItem = {
 }
 
 type Employee = {
-  id: string;
-  name: string;
-  role: string;
-  status: string;
+  Employee_ID: number;
+  Name: string;
+  Type: string;
+  Hourly_Salary: number;
 }
 
 type ReportItem = {
@@ -42,18 +43,13 @@ type MenuItems = {
   [key: string]: MenuItem[];
 }
 
-// sample data
 const inventoryData: InventoryItem[] = [
+  //default value that shows if there is an issue displaying or fetching data from database
   { Ingredient_Inventory_ID: '000', Stock: 'N/A', Units: 0, Cost_Per_Unit: 0 },
-  // { id: '001', stock: 'Orange Chicken Sauce', units: 50, costPerUnit: 2.99 },
-  // { id: '002', stock: 'White Rice', units: 100, costPerUnit: 1.50 },
-  // { id: '003', stock: 'Fortune Cookies', units: 1000, costPerUnit: 0.10 },
 ]
 
 const employeeData: Employee[] = [
-  { id: '001', name: 'John Doe', role: 'Cashier', status: 'Active' },
-  { id: '002', name: 'Jane Smith', role: 'Cook', status: 'Active' },
-  { id: '003', name: 'Bob Wilson', role: 'Manager', status: 'Active' },
+  { Employee_ID: 0, Name: 'N/A', Type: 'N/A', Hourly_Salary: 0.00 },
 ]
 
 const reportData: { [key: string]: ReportItem[] } = {
@@ -96,7 +92,10 @@ const menuItems: MenuItems = {
 }
 
 export default function Component() {
+  //for testing locally
   const backendUrl = 'http://localhost:3001'
+  //for deployment
+  //const backendUrl = ''
   const [selectedSection, setSelectedSection] = useState<string>('Inventory')
   const [selectedCategory, setSelectedCategory] = useState<string>('Sides')
   const [showAddDialog, setShowAddDialog] = useState<boolean>(false)
@@ -108,44 +107,92 @@ export default function Component() {
   const [employeeName, setEmployeeName] = useState('');
 
   useEffect(() => {
-    // const name = localStorage.getItem('employeeName');
-    // if (name) {
-    //   setEmployeeName(name);
-    // }
+    const name = localStorage.getItem('employeeName');
+    if (name) {
+      setEmployeeName(name);
+    }
 
+    //gets Ingredient_Inventory table data from database to populate table in Inventory tab
     const fetchInventory = async () => {
-      try {
-        const response = await fetch(new URL('/manager-view', backendUrl), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+      if (selectedSection === 'Inventory'){
+        try {
+          const response = await fetch(new URL('/manager-view', backendUrl), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          //checks if HTTP request was successful, throws status code if not
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          //gets the Content-Type header from the server's response, uses that to determine format of the returned data
+          const contentType = response.headers.get('content-type');
+
+          //if the Content-Type header is missing or doesn't contain application/json, throws an error (we expect the response to be JSON format)
+          if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Invalid content type, expected JSON');
+          }
+
+          const data = await response.json();
+          console.log(data);
+
+          setInventoryItems(data.inventory);
         }
-
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          throw new Error('Invalid content type, expected JSON');
+        catch (error) {
+          if (error instanceof Error)
+            console.error('Error fetching inventory:', error.message);
+          else
+            console.error('Unexpected error:', error);
         }
+      };
+    }
 
-        const data = await response.json();
-        console.log(data);
-        
-        setInventoryItems(data);
-      }
-      catch (error) {
-        if (error instanceof Error)
-          console.error('Error fetching inventory:', error.message);
-        else
-          console.error('Unexpected error:', error);
-      }
-    };
+    //gets Employee table data from database to populate table in Employees tab
+    const fetchEmployees = async () => {
+      if (selectedSection === 'Employees'){
+        try {
+          const response = await fetch(new URL('/manager-view', backendUrl), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          //checks if HTTP request was successful, throws status code if not
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
 
-    fetchInventory();
-  }, []);
+          //gets the Content-Type header from the server's response, uses that to determine format of the returned data
+          const contentType = response.headers.get('content-type');
+
+          //if the Content-Type header is missing or doesn't contain application/json, throws an error (we expect the response to be JSON format)
+          if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Invalid content type, expected JSON');
+          }
+
+          const data = await response.json();
+          console.log(data);
+
+          setEmployees(data.employees);
+        }
+        catch (error) {
+          if (error instanceof Error)
+            console.error('Error fetching inventory:', error.message);
+          else
+            console.error('Unexpected error:', error);
+        }
+      };
+    }
+
+    if (selectedSection === 'Inventory')
+      fetchInventory();
+    else if (selectedSection === 'Employees')
+      fetchEmployees();
+  }, [selectedSection]);
 
   const handleAddInventoryItem = (newItem: Omit<InventoryItem, 'Ingredient_Inventory_ID'>) => {
     setInventoryItems([...inventoryItems, { Ingredient_Inventory_ID: `00${inventoryItems.length + 1}`, ...newItem }])
@@ -161,19 +208,19 @@ export default function Component() {
     setInventoryItems(inventoryItems.filter(item => item.Ingredient_Inventory_ID !== id))
   }
 
-  const handleAddEmployee = (newEmployee: Omit<Employee, 'id' | 'status'>) => {
-    setEmployees([...employees, { id: `00${employees.length + 1}`, ...newEmployee, status: 'Active' }])
-    setShowAddDialog(false)
-  }
+  // const handleAddEmployee = (newEmployee: Omit<Employee, 'id' | 'status'>) => {
+  //   setEmployees([...employees, { id: `00${employees.length + 1}`, ...newEmployee, status: 'Active' }])
+  //   setShowAddDialog(false)
+  // }
 
-  const handleEditEmployee = (editedEmployee: Employee) => {
-    setEmployees(employees.map(emp => emp.id === editedEmployee.id ? editedEmployee : emp))
-    setShowEditDialog(false)
-  }
+  // const handleEditEmployee = (editedEmployee: Employee) => {
+  //   setEmployees(employees.map(emp => emp.id === editedEmployee.id ? editedEmployee : emp))
+  //   setShowEditDialog(false)
+  // }
 
-  const handleDeleteEmployee = (id: string) => {
-    setEmployees(employees.filter(emp => emp.id !== id))
-  }
+  // const handleDeleteEmployee = (id: string) => {
+  //   setEmployees(employees.filter(emp => emp.id !== id))
+  // }
 
   const handleAddMenuItem = (category: string, newItem: Omit<MenuItem, 'id'>) => {
     setMenuItemsState({
@@ -271,16 +318,16 @@ export default function Component() {
         </TableHeader>
         <TableBody>
           {employees.map((employee) => (
-            <TableRow key={employee.id}>
-              <TableCell>{employee.id}</TableCell>
-              <TableCell>{employee.name}</TableCell>
-              <TableCell>{employee.role}</TableCell>
-              <TableCell>{employee.status}</TableCell>
+            <TableRow key={employee.Employee_ID}>
+              <TableCell>{employee.Employee_ID}</TableCell>
+              <TableCell>{employee.Name}</TableCell>
+              <TableCell>{employee.Type}</TableCell>
+              <TableCell>{employee.Hourly_Salary}</TableCell>
               <TableCell>
                 <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(true)}>
                   <Edit className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() => handleDeleteEmployee(employee.id)}>
+                <Button variant="ghost" size="icon" /*onClick={() => handleDeleteEmployee(employee.id)}*/>
                   <Trash className="h-4 w-4" />
                 </Button>
               </TableCell>
@@ -303,7 +350,7 @@ export default function Component() {
             <div className="space-y-4">
               <Input placeholder="Name" className="bg-[#1C1C1C] border-none" />
               <Input placeholder="Role" className="bg-[#1C1C1C] border-none" />
-              <Button className="w-full flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg" onClick={() => handleAddEmployee({ name: 'New Employee', role: 'Cashier' })}>Add Employee</Button>
+              <Button className="w-full flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg" /*onClick={() => handleAddEmployee({ name: 'New Employee', role: 'Cashier' })}*/>Add Employee</Button>
             </div>
           </DialogContent>
         </Dialog>
