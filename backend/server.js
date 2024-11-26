@@ -107,11 +107,24 @@ app.post('/manager-login', async (req, res) => {
 
 app.post('/manager-view', async (req, res) => {
   try {
-    //Inventory Tab
-    //waits for the front end to run this command so it can render the data from the Ingredient_Inventory table, returns it in rows
     const inventoryRows = await client.query('SELECT * FROM "Ingredient_Inventory"');
+    // console.log('Received data:', req.body); //debugging
+    const { id, stock, units, cpu } = req.body;
+
+    if (id && stock && units && cpu) {
+      const addItem = `
+        INSERT INTO "Ingredient_Inventory" 
+        ("Ingredient_Inventory_ID", "Stock", "Units", "Cost_Per_Unit")
+        VALUES ($1, $2, $3, $4)
+      `;
+      // console.log('Inserting inventory item with:', { id, stock, units, cpu });
+      await client.query(addItem, [id, stock, units, cpu]);
+
+      return res.json({ message: 'Inventory item added successfully' });
+    }
+
     const employeeRows = await client.query('SELECT * FROM "Employee"');
-    // console.log(inventoryRows.rows);
+    // console.log(inventoryRows.rows); //debugging
 
     res.json({
       inventory: inventoryRows.rows,
@@ -122,17 +135,6 @@ app.post('/manager-view', async (req, res) => {
     console.error('Error fetching data:', error.message);
     res.status(500).json({ error: 'Internal Server Error' });
   }
-
-  // try {
-  //   //Employees Tab
-  //   const employeeRows = await client.query('SELECT * FROM "Employee"');
-  //   console.log(employeeRows.rows);
-  //   res.json(employeeRows.rows);
-  // }
-  // catch (error) {
-  //   console.error('Error fetching Employee data:', error.message);
-  //   res.status(500).json({ error: 'Internal Server Error' });
-  // }
 });
 
 app.post('/customer-view', async (req, res) => {

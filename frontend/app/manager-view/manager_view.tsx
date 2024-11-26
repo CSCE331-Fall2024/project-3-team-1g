@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import React from 'react'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -11,12 +12,13 @@ import { Plus, RefreshCcw, UserPlus, FileText, Edit, Trash} from "lucide-react"
 import Image from 'next/image'
 import { Input } from "@/components/ui/input"
 import { useRouter } from 'next/navigation'
+import { strict } from 'assert'
 
 // Define types for our data structures
 type InventoryItem = {
   Ingredient_Inventory_ID: string;
-  Stock: string;
-  Units: number;
+  Stock: number;
+  Units: string;
   Cost_Per_Unit: number;
 }
 
@@ -45,7 +47,7 @@ type MenuItems = {
 
 const inventoryData: InventoryItem[] = [
   //default value that shows if there is an issue displaying or fetching data from database
-  { Ingredient_Inventory_ID: '000', Stock: 'N/A', Units: 0, Cost_Per_Unit: 0 },
+  { Ingredient_Inventory_ID: 'N/A', Stock: 0, Units: 'N/A', Cost_Per_Unit: 0 },
 ]
 
 const employeeData: Employee[] = [
@@ -106,86 +108,92 @@ export default function Component() {
   const [menuItemsState, setMenuItemsState] = useState<MenuItems>(menuItems)
   const [employeeName, setEmployeeName] = useState('');
 
+  //react states for Inventory Item
+  const [id, setId] = React.useState('');
+  const [stock, setStock] = React.useState(0);
+  const [units, setUnits] = React.useState('');
+  const [cpu, setCpu] = React.useState(0);
+
+  //gets Ingredient_Inventory table data from database to populate table in Inventory tab
+  const fetchInventory = async () => {
+    if (selectedSection === 'Inventory'){
+      try {
+        const response = await fetch(new URL('/manager-view', backendUrl), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        //checks if HTTP request was successful, throws status code if not
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        //gets the Content-Type header from the server's response, uses that to determine format of the returned data
+        const contentType = response.headers.get('content-type');
+
+        //if the Content-Type header is missing or doesn't contain application/json, throws an error (we expect the response to be JSON format)
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Invalid content type, expected JSON');
+        }
+
+        const data = await response.json();
+        console.log(data);
+
+        setInventoryItems(data.inventory);
+      }
+      catch (error) {
+        if (error instanceof Error)
+          console.error('Error fetching inventory:', error.message);
+        else
+          console.error('Unexpected error:', error);
+      }
+    };
+  }
+
+  //gets Employee table data from database to populate table in Employees tab
+  const fetchEmployees = async () => {
+    if (selectedSection === 'Employees'){
+      try {
+        const response = await fetch(new URL('/manager-view', backendUrl), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        //checks if HTTP request was successful, throws status code if not
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        //gets the Content-Type header from the server's response, uses that to determine format of the returned data
+        const contentType = response.headers.get('content-type');
+
+        //if the Content-Type header is missing or doesn't contain application/json, throws an error (we expect the response to be JSON format)
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Invalid content type, expected JSON');
+        }
+
+        const data = await response.json();
+        console.log(data);
+
+        setEmployees(data.employees);
+      }
+      catch (error) {
+        if (error instanceof Error)
+          console.error('Error fetching inventory:', error.message);
+        else
+          console.error('Unexpected error:', error);
+      }
+    };
+  }
+
   useEffect(() => {
     const name = localStorage.getItem('employeeName');
     if (name) {
       setEmployeeName(name);
-    }
-
-    //gets Ingredient_Inventory table data from database to populate table in Inventory tab
-    const fetchInventory = async () => {
-      if (selectedSection === 'Inventory'){
-        try {
-          const response = await fetch(new URL('/manager-view', backendUrl), {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
-          
-          //checks if HTTP request was successful, throws status code if not
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          //gets the Content-Type header from the server's response, uses that to determine format of the returned data
-          const contentType = response.headers.get('content-type');
-
-          //if the Content-Type header is missing or doesn't contain application/json, throws an error (we expect the response to be JSON format)
-          if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Invalid content type, expected JSON');
-          }
-
-          const data = await response.json();
-          console.log(data);
-
-          setInventoryItems(data.inventory);
-        }
-        catch (error) {
-          if (error instanceof Error)
-            console.error('Error fetching inventory:', error.message);
-          else
-            console.error('Unexpected error:', error);
-        }
-      };
-    }
-
-    //gets Employee table data from database to populate table in Employees tab
-    const fetchEmployees = async () => {
-      if (selectedSection === 'Employees'){
-        try {
-          const response = await fetch(new URL('/manager-view', backendUrl), {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
-          
-          //checks if HTTP request was successful, throws status code if not
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          //gets the Content-Type header from the server's response, uses that to determine format of the returned data
-          const contentType = response.headers.get('content-type');
-
-          //if the Content-Type header is missing or doesn't contain application/json, throws an error (we expect the response to be JSON format)
-          if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Invalid content type, expected JSON');
-          }
-
-          const data = await response.json();
-          console.log(data);
-
-          setEmployees(data.employees);
-        }
-        catch (error) {
-          if (error instanceof Error)
-            console.error('Error fetching inventory:', error.message);
-          else
-            console.error('Unexpected error:', error);
-        }
-      };
     }
 
     if (selectedSection === 'Inventory')
@@ -194,10 +202,39 @@ export default function Component() {
       fetchEmployees();
   }, [selectedSection]);
 
-  const handleAddInventoryItem = (newItem: Omit<InventoryItem, 'Ingredient_Inventory_ID'>) => {
-    setInventoryItems([...inventoryItems, { Ingredient_Inventory_ID: `00${inventoryItems.length + 1}`, ...newItem }])
-    setShowAddDialog(false)
-  }
+  const handleAddInventoryItem = async (id: string, stock: number, units: string, cpu: number) => {
+    try {
+      const response = await fetch(new URL('/manager-view', backendUrl), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id,
+        stock,
+        units,
+        cpu,
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to add inventory item');
+    }
+
+    const data = await response.json();
+    console.log(data.message);
+    alert('Inventory item added successfully!');
+    setShowAddDialog(false);
+
+    }
+    catch (error) {
+      if (error instanceof Error)
+        console.error('Error adding item:', error.message);
+      else
+        console.error('Unexpected error:', error);
+    }
+  };
 
   const handleEditInventoryItem = (editedItem: InventoryItem) => {
     setInventoryItems(inventoryItems.map(item => item.Ingredient_Inventory_ID === editedItem.Ingredient_Inventory_ID ? editedItem : item))
@@ -277,7 +314,7 @@ export default function Component() {
         </TableBody>
       </Table>
       <div className="flex gap-2">
-        <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg">
+        <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg" onClick={() => fetchInventory()}>
           <RefreshCcw className="mr-2 h-4 w-4" />
           Refresh Table
         </Button>
@@ -293,10 +330,11 @@ export default function Component() {
               <DialogTitle>Add Inventory Item</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <Input placeholder="Stock Name" className="bg-[#1C1C1C] border-none" />
-              <Input type="number" placeholder="Units" className="bg-[#1C1C1C] border-none" />
-              <Input type="number" placeholder="Cost per Unit" className="bg-[#1C1C1C] border-none" />
-              <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleAddInventoryItem({ Stock: 'New Item', Units: 0, Cost_Per_Unit: 0 })}>Add Item</Button>
+              <Input type="string" placeholder="Inventory_Ingredient_ID" className="bg-[#1C1C1C] border-none" onChange={(e) => setId(e.target.value)}/>
+              <Input type="number" placeholder="Stock" className="bg-[#1C1C1C] border-none" onChange={(e) => setStock(Number(e.target.value))}/>
+              <Input type="string" placeholder="Units"className="bg-[#1C1C1C] border-none" onChange={(e) => setUnits(e.target.value)}/>
+              <Input type="number" placeholder="Cost_Per_Unit" className="bg-[#1C1C1C] border-none" onChange={(e) => setCpu(Number(e.target.value))}/>
+              <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleAddInventoryItem(id, stock, units, cpu)}>Add Item</Button>
             </div>
           </DialogContent>
         </Dialog>
