@@ -36,6 +36,7 @@ export default function CustomerLogin() {
       localStorage.setItem('customerName', data.name);
       
       alert(data.message)
+      // Redirect to customer page
       router.push('/customer-view') 
       
     } catch (err) {
@@ -49,13 +50,22 @@ export default function CustomerLogin() {
 
   const handleGoogleLoginSuccess = (response) => {
     console.log(response);
-    const email = response.profileObj.email;
-    localStorage.setItem('customerName', email);
-    router.push('/customer-view')
+    // Check if response contains the necessary profile information
+    if (response && response.credential) {
+      const decodedToken = JSON.parse(atob(response.credential.split('.')[1]));
+      const username = decodedToken.name; // Extract the username from the decoded token
+      // Store the username in local storage as the global name
+      localStorage.setItem('customerName', username);
+      // Redirect to the customer page
+      router.push('/customer-view')
+    } else {
+      console.error('Google login response does not contain the expected profile information');
+    }
   };
 
   const handleGoogleLoginFailure = (error) => {
     console.error(error);
+    // Handle Google login failure
   };
 
   return (
