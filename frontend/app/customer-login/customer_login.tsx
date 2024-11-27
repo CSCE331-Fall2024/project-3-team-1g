@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
 
 export default function CustomerLogin() {
+  const temp_id = '540665723185-hdqdi6ak0tf5bmc699ven4a34okdacru.apps.googleusercontent.com'
   const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -65,7 +66,7 @@ export default function CustomerLogin() {
   };
 
   return (
-    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
+    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || temp_id}>
       <header className="bg-dark-background text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
