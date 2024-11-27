@@ -107,28 +107,117 @@ app.post('/manager-login', async (req, res) => {
 
 app.post('/manager-view', async (req, res) => {
   try {
+    //QUERY FOR FETCHING INGREDIENT_INVENTORY TABLE
     const inventoryRows = await client.query('SELECT * FROM "Ingredient_Inventory"');
+    
+    const { action, id, stock, units, cpu } = req.body;
     // console.log('Received data:', req.body); //debugging
-    const { id, stock, units, cpu } = req.body;
 
-    if (id && stock && units && cpu) {
-      const addItem = `
-        INSERT INTO "Ingredient_Inventory" 
-        ("Ingredient_Inventory_ID", "Stock", "Units", "Cost_Per_Unit")
-        VALUES ($1, $2, $3, $4)
-      `;
-      // console.log('Inserting inventory item with:', { id, stock, units, cpu });
-      await client.query(addItem, [id, stock, units, cpu]);
+    //METHOD FOR ADDING NEW ITEMS TO INVENTORY
+    if (action === 'add') {
+      await client.query(
+        'INSERT INTO "Ingredient_Inventory" ("Ingredient_Inventory_ID", "Stock", "Units", "Cost_Per_Unit") VALUES ($1, $2, $3, $4)',
+        [id, stock, units, cpu]
+      );
 
+      // console.log('Adding inventory item with:', { id, stock, units, cpu });
       return res.json({ message: 'Inventory item added successfully' });
     }
 
+    //METHOD FOR EDITING NEW ITEMS IN INVENTORY
+    else if (action ==='edit'){
+      await client.query(
+        'UPDATE "Ingredient_Inventory" SET "Stock" = $2, "Units" = $3, "Cost_Per_Unit" = $4 WHERE "Ingredient_Inventory_ID" = $1',
+        [id, stock, units, cpu]
+      );
+
+      // console.log('Editing inventory item with:', { id, stock, units, cpu });
+      return res.json({ message: 'Inventory item edited successfully' });
+    }
+
+    //METHOD FOR DELETING ITEMS IN INVENTORY
+    else if (action ==='delete'){
+      await client.query(
+        'DELETE FROM "Ingredient_Inventory" WHERE "Ingredient_Inventory_ID" = $1', [id],
+      );
+
+      // console.log('Deleting inventory item with:', { id, stock, units, cpu });
+      return res.json({ message: 'Inventory item deleted successfully' });
+    }
+
+    //QUERY FOR FETCHING EMPLOYEE TABLE
     const employeeRows = await client.query('SELECT * FROM "Employee"');
     // console.log(inventoryRows.rows); //debugging
+
+    //METHOD FOR ADDING NEW EMPLOYEE
+    if (action==='addEmp'){
+      await client.query(
+        'INSERT INTO "Employee" ("Employee_ID", "Name", "Type", "Hourly_Salary") VALUES ($1, $2, $3, $4)',
+        [id, stock, units, cpu]
+      );
+
+      // console.log('Adding inventory item with:', { id, stock, units, cpu });
+      return res.json({ message: 'Employee added successfully' });
+    }
+
+    //METHOD FOR EDITING EMPLOYEE
+    else if (action==='editEmp'){
+      await client.query(
+        'UPDATE "Employee" SET "Name" = $2, "Type" = $3, "Hourly_Salary" = $4 WHERE "Employee_ID" = $1',
+        [id, stock, units, cpu]
+      );
+
+      // console.log('Editing employee item with:', { id, stock, units, cpu });
+      return res.json({ message: 'Employee edited successfully' });
+    }
+
+    //METHOD FOR DELETING EMPLOYEE
+    else if (action ==='deleteEmp'){
+      await client.query(
+        'DELETE FROM "Employee" WHERE "Employee_ID" = $1', [id],
+      );
+
+      // console.log('Deleting employee with:', { id, stock, units, cpu });
+      return res.json({ message: 'Employee deleted successfully' });
+    }
+
+    //QUERY FOR FETCHING MENU_ITEM TABLE
+    const menuRows = await client.query('SELECT * FROM "Menu_Item"');
+    // console.log(menuItems.rows); //debugging
+
+    const { item_id, category, inventory, servsize, item_units } = req.body;
+    //METHOD FOR ADDING MENU ITEM
+    if (action==='addMen'){
+      await client.query(
+        'INSERT INTO "Menu_Item" ("Menu_Item_ID", "Category", "Active_Inventory", "Serving_Size", "Units") VALUES ($1, $2, $3, $4, $5)',
+        [item_id, category, inventory, servsize, item_units]
+      );
+
+      // console.log('Adding menu item with:', { item_id, category, inventory, servsize, item_units });
+      return res.json({ message: 'Menu item added successfully' });
+    }
+
+    const {report} = req.body;
+    if (report==='XReport'){
+      const XReportRows = await client.query("SELECT \"Order\".\"Time\" AS Hour_Of_Day, " + 
+                                "COUNT(\"Order\".\"Order_ID\") AS Order_Count, " +
+                                "SUM(\"Container\".\"Price\") AS Total_Sales_Revenue " +
+                        "FROM \"Order\" " +
+                        "JOIN \"Order_Container\" ON \"Order\".\"Order_ID\" = \"Order_Container\".\"Order_ID\" " +
+                        "JOIN \"Container\" ON \"Order_Container\".\"Type\" = \"Container\".\"Container_ID\" " +
+                        "WHERE \"Order\".\"Date\" = ? " +
+                        "AND \"Order\".\"Time\" <= ? " +
+                        "GROUP BY \"Order\".\"Time\" " +
+                        "ORDER BY \"Order\".\"Time\"");
+      console.log(XReportRows.rows);
+      return res.json({reportData: XReportRows.rows});
+    }
+    
 
     res.json({
       inventory: inventoryRows.rows,
       employees: employeeRows.rows,
+      menu: menuRows.rows,
     });
   }
   catch (error) {
