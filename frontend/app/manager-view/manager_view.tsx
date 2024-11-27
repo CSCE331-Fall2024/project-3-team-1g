@@ -13,6 +13,7 @@ import Image from 'next/image'
 import { Input } from "@/components/ui/input"
 import { useRouter } from 'next/navigation'
 import { strict } from 'assert'
+import { report } from 'process'
 
 // Define types for our data structures
 type InventoryItem = {
@@ -31,7 +32,9 @@ type Employee = {
 
 type ReportItem = {
   category: string;
-  amount: number;
+  Hour_Of_Day?: string; // Optional for X reports
+  Order_Count?: number; // Optional for X reports
+  Total_Sales_Revenue?: number; // Optional for X reports
 }
 
 type MenuItem = {
@@ -52,27 +55,39 @@ const employeeData: Employee[] = [
   { Employee_ID: 0, Name: 'N/A', Type: 'N/A', Hourly_Salary: 0.00 },
 ]
 
-const reportData: { [key: string]: ReportItem[] } = {
+type XReportItem = {
+  Hour_Of_Day: number;
+  Order_Count: number;
+  Total_Sales_Revenue: number;
+};
+
+type YReportItem = {
+  category: string;
+};
+
+type ZReportItem = {
+  Hour_Of_Day: number;
+  Order_Count: number;  
+  Total_Sales_Revenue: number;
+};
+
+type ReportData = {
+  X: XReportItem[];
+  Y: YReportItem[];
+  Z: ZReportItem[];
+};
+
+const reportData: ReportData = {
   X: [
-    { category: 'Food Sales', amount: 5000 },
-    { category: 'Beverage Sales', amount: 1000 },
-    { category: 'Total Sales', amount: 6000 },
-    { category: 'Cash Payments', amount: 3500 },
-    { category: 'Card Payments', amount: 2500 },
+    { Hour_Of_Day: 0, Order_Count: 0, Total_Sales_Revenue: 0 },
   ],
   Y: [
-    { category: 'Opening Cash', amount: 500 },
-    { category: 'Cash Sales', amount: 3500 },
-    { category: 'Cash Payouts', amount: 200 },
-    { category: 'Closing Cash', amount: 3800 },
+    { category: 'Opening Cash'},
   ],
   Z: [
-    { category: 'Total Sales', amount: 18000 },
-    { category: 'Total Tax', amount: 1440 },
-    { category: 'Total Discounts', amount: 500 },
-    { category: 'Net Sales', amount: 16060 },
+    { Hour_Of_Day: 0, Order_Count: 0, Total_Sales_Revenue: 0 }
   ],
-}
+};
 
 const menuItemData: MenuItem[] = [
   { Menu_Item_ID: 'sidex', Category: 'Sides', Active_Inventory: 0, Serving_Size: 0, Units: 'x', Image:''},
@@ -107,6 +122,12 @@ const images: Record<string, string> = {
   "Soy Sauce": "/imgs/soysauce.png",
 };
 
+const reportColumns = {
+  X: ['Hour_Of_Day', 'Order_Count', 'Total_Sales_Revenue'],
+  Y: ['Category', 'Amount'],
+  Z: ['Hour_Of_Day', 'Order_Count', 'Total_Sales_Revenue'],
+};
+
 export default function Component() {
   //for testing locally
   const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
@@ -115,7 +136,7 @@ export default function Component() {
   const [selectedSection, setSelectedSection] = useState<string>('Inventory')
   const [selectedCategory, setSelectedCategory] = useState<string>('Sides')
  
-  const [selectedReport, setSelectedReport] = useState<string>('X')
+  const [selectedReport, setSelectedReport] = useState<'X' | 'Y' | 'Z'>('X');
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(inventoryData)
   const [employees, setEmployees] = useState<Employee[]>(employeeData)
   // const [menuItemsState, setMenuItemsState] = useState<MenuItems>(menuItems)
@@ -149,6 +170,13 @@ export default function Component() {
   const [menInventory, setMenInventory] = React.useState(0);
   const [menServSize, setMenServSize] = React.useState(0);
   const [menUnits, setMenUnits] = React.useState('');
+
+  //react states for Reports
+  const [reportData, setReportData] = useState({
+    X: [],
+    Y: [],
+    Z: [],
+  });
 
   //gets Ingredient_Inventory table data from database to populate table in Inventory tab
   const fetchInventory = async () => {
@@ -271,6 +299,43 @@ export default function Component() {
       ...item,
       Image: images[item.Menu_Item_ID] || '/imgs/pandaseasonal.png',
     }));
+  };
+
+  const fetchXReportData = async (action: string) => {
+    try {
+      const response = await fetch(new URL('/manager-view', backendUrl), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          report: 'XReport',
+        }),
+      });
+    
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch XReport');
+      }
+
+      const data = await response.json();
+      console.log(data);
+
+      setReportData(prevState => ({
+        ...prevState,
+        X: data.reportData, // Update the 'X' report data
+      }));
+
+      
+      alert('XReport fetched successfully!');
+    }
+
+    catch (error) {
+      if (error instanceof Error)
+        console.error('Error fetching XReport:', error.message);
+      else
+        console.error('Unexpected error:', error);
+    }
   };
 
   useEffect(() => {
@@ -796,37 +861,70 @@ export default function Component() {
             key={reportType}
             variant={selectedReport === reportType ? "secondary" : "ghost"}
             className={`text-white text-lg ${selectedReport === reportType ? 'bg-[#FF9636] hover:bg-[#FFA54F]' : 'hover:bg-[#E03A3C]'}`}
-            onClick={() => setSelectedReport(reportType)}
+            onClick={() => setSelectedReport(reportType as 'X' | 'Y' | 'Z')}
           >
             {reportType} Report
           </Button>
         ))}
       </div>
+
+      {reportData[selectedReport] && reportData[selectedReport].length > 0 ? (
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Category</TableHead>
-            <TableHead>Amount</TableHead>
+            {reportColumns[selectedReport].map((header, index) => (
+              <TableHead key={index}>{header}</TableHead>
+            ))}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {reportData[selectedReport].map((item, index) => (
-            <TableRow key={index}>
-              <TableCell>{item.category}</TableCell>
-              <TableCell>${item.amount.toFixed(2)}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
+        {reportData[selectedReport].map((item, index) => {
+          if (selectedReport === 'X') {
+            const xItem = item as XReportItem
+            return (
+              <TableRow key={index}>
+                <TableCell>{xItem.Hour_Of_Day}</TableCell>
+                <TableCell>{xItem.Order_Count}</TableCell>
+                <TableCell>${xItem.Total_Sales_Revenue.toFixed(2)}</TableCell>
+              </TableRow>
+            );
+          }
+          else if (selectedReport === 'Z'){
+            const zItem = item as ZReportItem
+            return (
+              <TableRow key={index}>
+                <TableCell>{zItem.Hour_Of_Day}</TableCell>
+                <TableCell>{zItem.Order_Count}</TableCell>
+                <TableCell>${zItem.Total_Sales_Revenue.toFixed(2)}</TableCell>
+              </TableRow>
+            );
+          } 
+          else {
+            const yItem = item as YReportItem
+            return (
+              <TableRow key={index}>
+                <TableCell>{yItem.category}</TableCell>
+              </TableRow>
+            );
+          }
+        })}
+      </TableBody>
       </Table>
+      ) : (
+        <p>No data available</p>
+      )}
       <div className="flex gap-2">
-        <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg">
+        <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg" onClick={() => {
+          if (selectedReport === 'X') {
+            fetchXReportData('XReport');
+          }
+        }}>
           <FileText className="mr-2 h-4 w-4" />
           Generate Report
         </Button>
-        <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg">Export Report</Button>
       </div>
     </div>
-  )
+  );
 
   const renderMenuContent = () => {
     const categories = Array.from(new Set(menuItemData.map((item) => item.Category)));

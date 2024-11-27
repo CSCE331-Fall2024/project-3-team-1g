@@ -186,6 +186,7 @@ app.post('/manager-view', async (req, res) => {
     // console.log(menuItems.rows); //debugging
 
     const { item_id, category, inventory, servsize, item_units } = req.body;
+    //METHOD FOR ADDING MENU ITEM
     if (action==='addMen'){
       await client.query(
         'INSERT INTO "Menu_Item" ("Menu_Item_ID", "Category", "Active_Inventory", "Serving_Size", "Units") VALUES ($1, $2, $3, $4, $5)',
@@ -195,6 +196,23 @@ app.post('/manager-view', async (req, res) => {
       // console.log('Adding menu item with:', { item_id, category, inventory, servsize, item_units });
       return res.json({ message: 'Menu item added successfully' });
     }
+
+    const {report} = req.body;
+    if (report==='XReport'){
+      const XReportRows = await client.query("SELECT \"Order\".\"Time\" AS Hour_Of_Day, " + 
+                                "COUNT(\"Order\".\"Order_ID\") AS Order_Count, " +
+                                "SUM(\"Container\".\"Price\") AS Total_Sales_Revenue " +
+                        "FROM \"Order\" " +
+                        "JOIN \"Order_Container\" ON \"Order\".\"Order_ID\" = \"Order_Container\".\"Order_ID\" " +
+                        "JOIN \"Container\" ON \"Order_Container\".\"Type\" = \"Container\".\"Container_ID\" " +
+                        "WHERE \"Order\".\"Date\" = ? " +
+                        "AND \"Order\".\"Time\" <= ? " +
+                        "GROUP BY \"Order\".\"Time\" " +
+                        "ORDER BY \"Order\".\"Time\"");
+      console.log(XReportRows.rows);
+      return res.json({reportData: XReportRows.rows});
+    }
+    
 
     res.json({
       inventory: inventoryRows.rows,
