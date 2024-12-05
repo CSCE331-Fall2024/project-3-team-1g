@@ -1,15 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
-import { Minus, Plus, X } from 'lucide-react'
+import { Minus, Plus, X, AlertCircle, Check } from 'lucide-react'
 import { AnimatePresence, motion } from "framer-motion"
 import Image from 'next/image'
 import { Input } from "@/components/ui/input"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 type MenuItem = {
   Menu_Item_ID: string;
@@ -17,6 +18,8 @@ type MenuItem = {
   Active_Inventory: number;
   Serving_Size: number;
   Units: string;
+  contains_allergens: string[];
+  doesnt_contain: string[];
 };
 
 type Item = {
@@ -31,6 +34,8 @@ type Item = {
   price: number;
   quantity: number;
   image: string;
+  contains_allergens: string[];
+  doesnt_contain: string[];
 };
 
 type Cart = {
@@ -45,20 +50,87 @@ type Container = {
   entrees: number;
   image: string;
   price: number;
+  contains_allergens: string[];
+  doesnt_contain: string[];
 };
 
 type CategoryItems = {
   [key: string]: MenuItem[];
 };
 
+type AllergyIconsProps = {
+  containsAllergens: string[];
+  doesntContain: string[];
+};
+
+const allergenIcons = {
+  wheat: '/allergen-icons/wheat.png',
+  lactose: '/allergen-icons/lactose.png',
+  peanuts: '/allergen-icons/peanuts.png',
+  'tree nuts': '/allergen-icons/tree_nuts.png',
+  shellfish: '/allergen-icons/shellfish.png',
+  soy: '/allergen-icons/soy.png',
+  eggs: '/allergen-icons/eggs.png',
+  fish: '/allergen-icons/fish.png',
+  sesame: '/allergen-icons/sesame.png',
+  vegetarian: '/allergen-icons/vegetarian.png',
+  vegan: '/allergen-icons/vegan.png',
+}
+
 const containers: Container[] = [
-  { name: 'Bowl', sides: 1, entrees: 1, image: '/imgs/1black.png?height=100&width=100', price: 8 },
-  { name: 'Plate', sides: 1, entrees: 2, image: '/imgs/2black.png?height=100&width=100', price: 10 },
-  { name: 'Bigger Plate', sides: 1, entrees: 3, image: '/imgs/3black.png?height=100&width=100', price: 12 },
+  { name: 'Bowl', sides: 1, entrees: 1, image: '/imgs/1black.png?height=100&width=100', price: 8, contains_allergens: [], doesnt_contain: [] },
+  { name: 'Plate', sides: 1, entrees: 2, image: '/imgs/2black.png?height=100&width=100', price: 10, contains_allergens: [], doesnt_contain: [] },
+  { name: 'Bigger Plate', sides: 1, entrees: 3, image: '/imgs/3black.png?height=100&width=100', price: 12, contains_allergens: [], doesnt_contain: [] },
 ];
+
+function AllergyIcons({ containsAllergens, doesntContain }: AllergyIconsProps) {
+  return (
+    <div className="flex space-x-1">
+      {containsAllergens.map((allergen) => (
+        <TooltipProvider key={allergen}>
+          <Tooltip>
+            <TooltipTrigger>
+              <div className="w-6 h-6 rounded-full overflow-hidden">
+                <Image 
+                  src={allergenIcons[allergen as keyof typeof allergenIcons] || '/allergen-icons/placeholder.png'} 
+                  alt={allergen} 
+                  width={24} 
+                  height={24}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>This item contains {allergen}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ))}
+      {doesntContain.map((item) => (
+        <TooltipProvider key={item}>
+          <Tooltip>
+            <TooltipTrigger>
+              <div className="w-6 h-6 rounded-full overflow-hidden">
+                <Image 
+                  src={allergenIcons[item as keyof typeof allergenIcons] || '/allergen-icons/placeholder.png'} 
+                  alt={item} 
+                  width={24} 
+                  height={24}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>This item is {item}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ))}
+    </div>
+  )
+}
 
 export default function Component() {
   const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
+  const categories = ['Mains', 'Appetizers', 'Drinks', 'Extras']
   const [selectedCategory, setSelectedCategory] = useState('Mains')
   const [cart, setCart] = useState<Cart>({ items: [], total: 0, tax: 0 })
   const [selectedContainer, setSelectedContainer] = useState<string | null>(null)
@@ -91,7 +163,14 @@ export default function Component() {
           throw new Error('Failed to fetch menu items');
         }
         const data = await response.json();
-        setMenuItems(data);
+        // Ensure all items have the required allergen arrays
+        const processedData = Object.fromEntries(
+          Object.entries(data).map(([category, items]) => [
+            category,
+            (items as MenuItem[]).map(ensureAllergenArrays)
+          ])
+        );
+        setMenuItems(processedData);
       } catch (error) {
         console.error('Error fetching menu items:', error);
       }
@@ -100,7 +179,13 @@ export default function Component() {
     fetchMenuItems();
   }, []);
 
-  const categories = ['Mains', 'Appetizers', 'Drinks', 'Extras']
+  const ensureAllergenArrays = (item: MenuItem): MenuItem => {
+    return {
+      ...item,
+      contains_allergens: item.contains_allergens || [],
+      doesnt_contain: item.doesnt_contain || []
+    };
+  };
 
   const addToCart = (newItems: Item | Item[]) => {
     setCart(prevCart => {
@@ -132,6 +217,21 @@ export default function Component() {
   const addMainsToCart = () => {
     const selectedContainerObj = containers.find(c => c.name === selectedContainer);
     if (selectedContainer && selectedContainerObj && selectedSides.length === 1 && selectedEntrees.length === selectedContainerObj.entrees) {
+      const selectedSideItem = menuItems['Sides']?.find(side => side.Menu_Item_ID === selectedSides[0]);
+      const selectedEntreeItems = selectedEntrees.map(entree => menuItems['Entrees']?.find(item => item.Menu_Item_ID === entree));
+      
+      const containsAllergens = [...new Set([
+        ...(selectedContainerObj.contains_allergens || []),
+        ...(selectedSideItem?.contains_allergens || []),
+        ...selectedEntreeItems.flatMap(item => item?.contains_allergens || [])
+      ])];
+      
+      const doesntContain = [...new Set([
+        ...(selectedContainerObj.doesnt_contain || []),
+        ...(selectedSideItem?.doesnt_contain || []),
+        ...selectedEntreeItems.flatMap(item => item?.doesnt_contain || [])
+      ])];
+
       const mainItem: Item = {
         name: `${selectedContainer} Meal`,
         container_type: selectedContainer,
@@ -143,7 +243,9 @@ export default function Component() {
         details: `Side: ${selectedSides[0]}, Entrees: ${selectedEntrees.join(', ')}`,
         price: selectedContainerObj.price,
         quantity: 1,
-        image: selectedContainerObj.image
+        image: selectedContainerObj.image,
+        contains_allergens: containsAllergens,
+        doesnt_contain: doesntContain
       }
       addToCart(mainItem)
       setSelectedContainer(null)
@@ -181,7 +283,9 @@ export default function Component() {
             details: null,
             price,
             quantity,
-            image: `/imgs/${itemName.toLowerCase().replace(' ', '')}.png?height=100&width=100`
+            image: `/imgs/${itemName.toLowerCase().replace(' ', '')}.png?height=100&width=100`,
+            contains_allergens: menuItem.contains_allergens || [],
+            doesnt_contain: menuItem.doesnt_contain || []
           }
         }
         return null
@@ -287,6 +391,9 @@ export default function Component() {
                       <Image src={container.image} alt={container.name} width={100} height={100} className="mb-2" />
                       <h3 className="text-lg font-semibold text-white">{container.name}</h3>
                       <p className="text-white">${container.price.toFixed(2)}</p>
+                      <div className="mt-2">
+                        <AllergyIcons containsAllergens={container.contains_allergens} doesntContain={container.doesnt_contain} />
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -305,6 +412,9 @@ export default function Component() {
                     <CardContent className="p-4 flex flex-col items-center">
                       <Image src={`/imgs/${side.Menu_Item_ID.toLowerCase().replaceAll(' ', '')}.png?height=100&width=100`} alt={side.Menu_Item_ID} width={100} height={100} className="mb-2" />
                       <h3 className="text-lg font-semibold text-white">{side.Menu_Item_ID}</h3>
+                      <div className="mt-2">
+                        <AllergyIcons containsAllergens={side.contains_allergens || []} doesntContain={side.doesnt_contain || []} />
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -330,6 +440,9 @@ export default function Component() {
                     <CardContent className="p-4 flex flex-col items-center">
                       <Image src={`/imgs/${entree.Menu_Item_ID.toLowerCase().replaceAll(' ', '')}.png?height=100&width=100`} alt={entree.Menu_Item_ID} width={100} height={100} className="mb-2" />
                       <h3 className="text-lg font-semibold text-white">{entree.Menu_Item_ID}</h3>
+                      <div className="mt-2">
+                        <AllergyIcons containsAllergens={entree.contains_allergens || []} doesntContain={entree.doesnt_contain || []} />
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -358,6 +471,9 @@ export default function Component() {
                     <p className="text-white">
                       ${selectedCategory === 'Appetizers' ? '3.00' : selectedCategory === 'Drinks' ? '2.00' : '0.00'}
                     </p>
+                    <div className="mt-2">
+                      <AllergyIcons containsAllergens={item.contains_allergens || []} doesntContain={item.doesnt_contain || []} />
+                    </div>
                     <div className="flex items-center justify-between mt-2">
                       <Button variant="outline" size="icon" onClick={() => handleQuantityChange(item.Menu_Item_ID, -1)}>
                         <Minus className="h-4 w-4" />
