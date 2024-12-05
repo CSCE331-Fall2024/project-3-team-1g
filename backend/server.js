@@ -177,7 +177,7 @@ app.post('/manager-view', async (req, res) => {
         'DELETE FROM "Employee" WHERE "Employee_ID" = $1', [id],
       );
 
-      // console.log('Deleting employee with:', { id, stock, units, cpu });
+      console.log('Deleting employee with:', { id, stock, units, cpu });
       return res.json({ message: 'Employee deleted successfully' });
     }
 
@@ -197,27 +197,28 @@ app.post('/manager-view', async (req, res) => {
       return res.json({ message: 'Menu item added successfully' });
     }
 
-    const {report} = req.body;
-    if (report==='XReport'){
-      const XReportRows = await client.query("SELECT \"Order\".\"Time\" AS Hour_Of_Day, " + 
+    const { date, time } = req.body;
+    console.log("Received date:", date);
+    console.log("Received time:", time);
+    
+    const XReportRows = await client.query("SELECT \"Order\".\"Time\" AS Hour_Of_Day, " + 
                                 "COUNT(\"Order\".\"Order_ID\") AS Order_Count, " +
                                 "SUM(\"Container\".\"Price\") AS Total_Sales_Revenue " +
                         "FROM \"Order\" " +
                         "JOIN \"Order_Container\" ON \"Order\".\"Order_ID\" = \"Order_Container\".\"Order_ID\" " +
                         "JOIN \"Container\" ON \"Order_Container\".\"Type\" = \"Container\".\"Container_ID\" " +
-                        "WHERE \"Order\".\"Date\" = ? " +
-                        "AND \"Order\".\"Time\" <= ? " +
+                        "WHERE \"Order\".\"Date\" = $1 " +
+                        "AND \"Order\".\"Time\" <= $2 " +
                         "GROUP BY \"Order\".\"Time\" " +
-                        "ORDER BY \"Order\".\"Time\"");
-      console.log(XReportRows.rows);
-      return res.json({reportData: XReportRows.rows});
-    }
-    
+                        "ORDER BY \"Order\".\"Time\"",
+                      [date, time]);
+    console.log(XReportRows.rows);
 
     res.json({
       inventory: inventoryRows.rows,
       employees: employeeRows.rows,
       menu: menuRows.rows,
+      xReport: XReportRows.rows,
     });
   }
   catch (error) {
