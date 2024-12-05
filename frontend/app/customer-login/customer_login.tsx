@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useEffect } from "react"
-import React from 'react'
 import { useRouter } from 'next/navigation'
 import Link from "next/link"
+import axios from 'axios'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
+import WeatherBox from './WeatherBox' // Import the WeatherBox component
 
 export default function CustomerLogin() {
   const temp_id = '540665723185-hdqdi6ak0tf5bmc699ven4a34okdacru.apps.googleusercontent.com'
@@ -152,6 +153,7 @@ export default function CustomerLogin() {
           <h1 className="text-4xl font-bold text-white mb-8">
             {translatedText.header}
           </h1>
+          <WeatherBox /> {/* Use the WeatherBox component */}
           <div className="w-full max-w-md bg-[#DC0032] rounded-lg p-6 space-y-6">
             <h2 className="text-2xl font-bold text-white text-center">
               {translatedText.login}
