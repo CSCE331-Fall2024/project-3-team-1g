@@ -124,7 +124,7 @@ const images: Record<string, string> = {
 
 const reportColumns = {
   X: ['Hour_Of_Day', 'Order_Count', 'Total_Sales_Revenue'],
-  Y: ['Category', 'Amount'],
+  Y: ['Category', 'Amount'], //temporary
   Z: ['Hour_Of_Day', 'Order_Count', 'Total_Sales_Revenue'],
 };
 
@@ -301,40 +301,54 @@ export default function Component() {
     }));
   };
 
-  const fetchXReportData = async (action: string) => {
-    try {
-      const response = await fetch(new URL('/manager-view', backendUrl), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          report: 'XReport',
-        }),
-      });
-    
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch XReport');
+  const fetchXReportData = async () => {
+    if (selectedReport === 'X'){
+      try {
+        const today = new Date();
+        const currDate = today.toISOString().split('T')[0];
+        const currTime = today.getHours();
+
+        const response = await fetch(new URL('/manager-view', backendUrl), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            date: currDate,
+            time: currTime,
+          }),
+        });
+      
+        //checks if HTTP request was successful, throws status code if not
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        //gets the Content-Type header from the server's response, uses that to determine format of the returned data
+        const contentType = response.headers.get('content-type');
+
+        //if the Content-Type header is missing or doesn't contain application/json, throws an error (we expect the response to be JSON format)
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Invalid content type, expected JSON');
+        }
+
+        const data = await response.json();
+        // console.log(data);
+
+        setReportData(prevState => ({
+          ...prevState,
+          X: data.xReport,
+        }));
+        
+        alert('XReport fetched successfully!');
       }
 
-      const data = await response.json();
-      console.log(data);
-
-      setReportData(prevState => ({
-        ...prevState,
-        X: data.reportData, // Update the 'X' report data
-      }));
-
-      
-      alert('XReport fetched successfully!');
-    }
-
-    catch (error) {
-      if (error instanceof Error)
-        console.error('Error fetching XReport:', error.message);
-      else
-        console.error('Unexpected error:', error);
+      catch (error) {
+        if (error instanceof Error)
+          console.error('Error fetching XReport:', error.message);
+        else
+          console.error('Unexpected error:', error);
+      }
     }
   };
 
@@ -806,9 +820,7 @@ export default function Component() {
                           <Button
                             className="w-full bg-panda-red hover:bg-[#b52528]"
                             onClick={() => {
-                              handleDeleteEmployee(
-                                selectedEmployeeForDelete.Employee_ID
-                              );
+                              handleDeleteEmployee(selectedEmployeeForDelete.Employee_ID);
                               setShowDeleteDialog(false);
                             }}
                           >
@@ -916,7 +928,7 @@ export default function Component() {
       <div className="flex gap-2">
         <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg" onClick={() => {
           if (selectedReport === 'X') {
-            fetchXReportData('XReport');
+            fetchXReportData();
           }
         }}>
           <FileText className="mr-2 h-4 w-4" />
