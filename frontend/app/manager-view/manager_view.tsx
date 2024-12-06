@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { useRouter } from 'next/navigation'
 import { strict } from 'assert'
 import { report } from 'process'
+import { format, toZonedTime } from 'date-fns-tz'
 
 // Define types for our data structures
 type InventoryItem = {
@@ -305,8 +306,13 @@ export default function Component() {
     if (selectedReport === 'X'){
       try {
         const today = new Date();
-        const currDate = today.toISOString().split('T')[0];
+        const timeZone = 'America/Chicago';
+        const zonedDate = toZonedTime(today, timeZone);
+
+        const currDate = format(zonedDate, 'yyyy-MM-dd', { timeZone });
         const currTime = today.getHours();
+        console.log(currDate);
+        console.log(currTime);
 
         const response = await fetch(new URL('/manager-view', backendUrl), {
           method: 'POST',
@@ -897,7 +903,8 @@ export default function Component() {
               <TableRow key={index}>
                 <TableCell>{xItem.Hour_Of_Day}</TableCell>
                 <TableCell>{xItem.Order_Count}</TableCell>
-                <TableCell>${xItem.Total_Sales_Revenue.toFixed(2)}</TableCell>
+                {/* <TableCell>${item.Cost_Per_Unit ? item.Cost_Per_Unit.toFixed(2) : '0.00'}</TableCell> */}
+                <TableCell>${xItem.Total_Sales_Revenue ? xItem.Total_Sales_Revenue.toFixed(2) : '0.00'}</TableCell>
               </TableRow>
             );
           }
