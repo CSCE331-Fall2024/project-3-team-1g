@@ -163,7 +163,7 @@ export default function Component() {
           throw new Error('Failed to fetch menu items');
         }
         const data = await response.json();
-        // Ensure all items have the required allergen arrays
+        //ensures all items have the required allergen arrays
         const processedData = Object.fromEntries(
           Object.entries(data).map(([category, items]) => [
             category,
@@ -364,7 +364,7 @@ export default function Component() {
               className={`w-full justify-start mb-2 text-white ${selectedCategory === category ? 'bg-panda-orange hover:bg-panda-orange-light' : 'hover:bg-panda-red-light'}`}
               onClick={() => setSelectedCategory(category)}
             >
-              <span className="text-lg font-semibold">
+              <span className="text-lg text-white font-bold">
                 {category}
               </span>
             </Button>
@@ -389,7 +389,7 @@ export default function Component() {
                   >
                     <CardContent className="p-4 flex flex-col items-center">
                       <Image src={container.image} alt={container.name} width={100} height={100} className="mb-2" />
-                      <h3 className="text-lg font-semibold text-white">{container.name}</h3>
+                      <h3 className="text-lg font-bold text-white">{container.name}</h3>
                       <p className="text-white">${container.price.toFixed(2)}</p>
                       <div className="mt-2">
                         <AllergyIcons containsAllergens={container.contains_allergens} doesntContain={container.doesnt_contain} />
@@ -411,7 +411,7 @@ export default function Component() {
                   >
                     <CardContent className="p-4 flex flex-col items-center">
                       <Image src={`/imgs/${side.Menu_Item_ID.toLowerCase().replaceAll(' ', '')}.png?height=100&width=100`} alt={side.Menu_Item_ID} width={100} height={100} className="mb-2" />
-                      <h3 className="text-lg font-semibold text-white">{side.Menu_Item_ID}</h3>
+                      <h3 className="text-lg font-bold text-white">{side.Menu_Item_ID}</h3>
                       <div className="mt-2">
                         <AllergyIcons containsAllergens={side.contains_allergens || []} doesntContain={side.doesnt_contain || []} />
                       </div>
@@ -439,7 +439,7 @@ export default function Component() {
                   >
                     <CardContent className="p-4 flex flex-col items-center">
                       <Image src={`/imgs/${entree.Menu_Item_ID.toLowerCase().replaceAll(' ', '')}.png?height=100&width=100`} alt={entree.Menu_Item_ID} width={100} height={100} className="mb-2" />
-                      <h3 className="text-lg font-semibold text-white">{entree.Menu_Item_ID}</h3>
+                      <h3 className="text-lg font-bold text-white">{entree.Menu_Item_ID}</h3>
                       <div className="mt-2">
                         <AllergyIcons containsAllergens={entree.contains_allergens || []} doesntContain={entree.doesnt_contain || []} />
                       </div>
