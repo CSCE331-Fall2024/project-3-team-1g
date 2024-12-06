@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, ReactNode } from 'react'
+import React from 'react'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -128,6 +129,61 @@ function AllergyIcons({ containsAllergens, doesntContain }: AllergyIconsProps) {
   )
 }
 
+function useTranslation(isSpanish: boolean, translateText: (text: string, targetLanguage: string) => Promise<string>, translatedCache: Record<string, string>) {
+  const t = useCallback(async (text: string) => {
+    if (!isSpanish) return text;
+
+    if (translatedCache[text]) {
+      return translatedCache[text];
+    }
+
+    try {
+      return await translateText(text, 'es');
+    } catch (error) {
+      console.error('Translation error:', error);
+      return text;
+    }
+  }, [isSpanish, translateText, translatedCache]);
+
+  return t;
+}
+
+interface TranslateProps {
+  children: ReactNode
+  isSpanish: boolean
+  translateText: (text: string, targetLanguage: string) => Promise<string>
+  translatedCache: Record<string, string>
+}
+
+function Translate({ children, isSpanish, translateText, translatedCache }: TranslateProps) {
+  const [translated, setTranslated] = useState<ReactNode>(children)
+
+  useEffect(() => {
+    const translate = async () => {
+      if (isSpanish && typeof children === 'string') {
+        const translatedText = await translateText(children, 'es')
+        setTranslated(translatedText)
+      } else if (isSpanish && React.isValidElement(children)) {
+        const translatedChildren = await Promise.all(
+          React.Children.map(children.props.children, async (child) => {
+            if (typeof child === 'string') {
+              return await translateText(child, 'es')
+            }
+            return child
+          })
+        )
+        setTranslated(React.cloneElement(children, {}, ...translatedChildren))
+      } else {
+        setTranslated(children)
+      }
+    } 
+
+    translate()
+  }, [children, isSpanish, translateText])
+
+  return <>{translated}</>
+}
+
 export default function Component() {
   const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app';
   const categories = ['Mains', 'Appetizers', 'Drinks', 'Extras']
@@ -143,6 +199,41 @@ export default function Component() {
   const [orderNumber, setOrderNumber] = useState('')
   const [customerName, setCustomerName] = useState('')
   const [menuItems, setMenuItems] = useState<CategoryItems>({})
+
+  const [isSpanish, setIsSpanish] = useState(false);
+  const TRANSLATE_API_KEY = 'AIzaSyAzT9821UMgFfHS6UYGqEj0OZxOAzJN6RA';
+  const [translatedCache, setTranslatedCache] = useState<Record<string, string>>({});
+  
+
+  const translateText = async (text: string, targetLanguage: string) => {
+    const cachedTranslation = translatedCache[text];
+    if (cachedTranslation) {
+      return cachedTranslation; // Use cached translation if available
+    }
+
+    const url = `https://translation.googleapis.com/language/translate/v2?key=${TRANSLATE_API_KEY}`;
+    try {
+      const response = await fetch(url, {
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q: text, target: targetLanguage }),
+      });
+      const data = await response.json();
+      const translated = data.data.translations[0].translatedText;
+
+      //cache translation for reuse
+      setTranslatedCache((prev) => ({ ...prev, [text]: translated }));
+      return translated;
+    } catch (error) {
+      console.error('Translation error:', error);
+      return text;
+    }
+  };
+
+  const toggleLanguage = () => {
+    setIsSpanish(!isSpanish);
+  };
+
 
   useEffect(() => {
     const name = localStorage.getItem('customerName');
@@ -197,7 +288,10 @@ export default function Component() {
         tax: newTotal * 0.1
       }
     })
-    setNotification("Item added to cart!")
+    if (!isSpanish)
+      setNotification("Item added to cart!")
+    else
+      setNotification("¡Artículo agregado al carrito!")
     setTimeout(() => setNotification(null), 2000)
   }
 
@@ -347,14 +441,29 @@ export default function Component() {
           <Image src="/imgs/panda.png?height=40&width=40" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
           <h1 className="text-2xl font-bold">Panda Express</h1>
         </div>
-        <Link href="employee-login">
-          <Button>Log out</Button>
-        </Link>
+        <div className="flex items-center space-x-2">
+          <Button onClick={toggleLanguage}>
+            <span className="text-lg font-bold">
+              {isSpanish ? "English" : "Español"}
+            </span>
+          </Button>
+          <Link href="employee-login">
+            <Button>
+              <span className="text-lg text-white font-bold">
+                <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                  Log out
+                </Translate>
+              </span>
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Left Sidebar */}
       <div className="w-64 bg-dark-sidebar p-4 pt-20">
-        <h2 className="text-xl font-bold mb-4">Hello, {customerName}</h2>
+        <h2 className="text-xl font-bold mb-4">
+          {isSpanish ? `Hola, ${customerName}` : `Hello, ${customerName}`}
+        </h2>
 
         <ScrollArea className="h-[calc(100vh-12rem)]">
           {categories.map(category => (
@@ -365,7 +474,9 @@ export default function Component() {
               onClick={() => setSelectedCategory(category)}
             >
               <span className="text-lg text-white font-bold">
-                {category}
+                <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                  {category}
+                </Translate>
               </span>
             </Button>
           ))}
@@ -374,12 +485,20 @@ export default function Component() {
 
       {/* Ordering Section  */}
       <div className="flex-1 p-4 pt-20 overflow-auto">
-        <h2 className="text-3xl font-bold mb-4">{selectedCategory}</h2>
+        <h2 className="text-3xl font-bold mb-4">
+          <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+            {selectedCategory}
+          </Translate>
+        </h2>
         {selectedCategory === 'Mains' ? (
           <div className="space-y-8">
             {/* Container Selection Section */}
             <div>
-              <h3 className="text-xl font-semibold mb-4">Select Container</h3>
+              <h3 className="text-xl font-semibold mb-4">
+                <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                  Select Container
+                </Translate>
+              </h3>
               <div className="grid grid-cols-3 gap-4">
                 {containers.map(container => (
                   <Card 
@@ -389,7 +508,11 @@ export default function Component() {
                   >
                     <CardContent className="p-4 flex flex-col items-center">
                       <Image src={container.image} alt={container.name} width={100} height={100} className="mb-2" />
-                      <h3 className="text-lg font-bold text-white">{container.name}</h3>
+                      <h3 className="text-lg font-bold text-white">
+                        <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                          {container.name}
+                        </Translate>
+                      </h3>
                       <p className="text-white">${container.price.toFixed(2)}</p>
                       <div className="mt-2">
                         <AllergyIcons containsAllergens={container.contains_allergens} doesntContain={container.doesnt_contain} />
@@ -399,9 +522,14 @@ export default function Component() {
                 ))}
               </div>
             </div>
+
             {/* Side Selection Section */}
             <div className={selectedContainer ? '' : 'opacity-50 pointer-events-none'}>
-              <h3 className="text-xl font-semibold mb-4">Select Side (1)</h3>
+              <h3 className="text-xl font-semibold mb-4">
+                <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                  Select Side (1)
+                </Translate>
+              </h3>
               <div className="grid grid-cols-3 gap-4">
                 {menuItems['Sides']?.map(side => (
                   <Card 
@@ -411,7 +539,11 @@ export default function Component() {
                   >
                     <CardContent className="p-4 flex flex-col items-center">
                       <Image src={`/imgs/${side.Menu_Item_ID.toLowerCase().replaceAll(' ', '')}.png?height=100&width=100`} alt={side.Menu_Item_ID} width={100} height={100} className="mb-2" />
-                      <h3 className="text-lg font-bold text-white">{side.Menu_Item_ID}</h3>
+                      <h3 className="text-lg font-bold text-white">
+                        <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                          {side.Menu_Item_ID}
+                        </Translate>
+                      </h3>
                       <div className="mt-2">
                         <AllergyIcons containsAllergens={side.contains_allergens || []} doesntContain={side.doesnt_contain || []} />
                       </div>
@@ -420,9 +552,12 @@ export default function Component() {
                 ))}
               </div>
             </div>
+
             {/* Entree Selection Section */}
             <div className={selectedContainer ? '' : 'opacity-50 pointer-events-none'}>
-              <h3 className="text-xl font-semibold mb-4">Select Entrees ({containers.find(c => c.name === selectedContainer)?.entrees || 0})</h3>
+              <h3 className="text-xl font-semibold mb-4">
+              <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                          Select Entrees </Translate>({containers.find(c => c.name === selectedContainer)?.entrees || 0})</h3>
               <div className="grid grid-cols-3 gap-4">
                 {menuItems['Entrees']?.map(entree => (
                   <Card 
@@ -439,7 +574,9 @@ export default function Component() {
                   >
                     <CardContent className="p-4 flex flex-col items-center">
                       <Image src={`/imgs/${entree.Menu_Item_ID.toLowerCase().replaceAll(' ', '')}.png?height=100&width=100`} alt={entree.Menu_Item_ID} width={100} height={100} className="mb-2" />
-                      <h3 className="text-lg font-bold text-white">{entree.Menu_Item_ID}</h3>
+                      <h3 className="text-lg font-bold text-white"><Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                          {entree.Menu_Item_ID}
+                        </Translate></h3>
                       <div className="mt-2">
                         <AllergyIcons containsAllergens={entree.contains_allergens || []} doesntContain={entree.doesnt_contain || []} />
                       </div>
@@ -455,7 +592,8 @@ export default function Component() {
                 disabled={!selectedContainer || selectedSides.length !== 1 || selectedEntrees.length !== containers.find(c => c.name === selectedContainer)?.entrees}
                 className="bg-panda-orange hover:bg-panda-orange-light text-white text-lg"
               >
-                Add To Order
+                <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                Add to Order </Translate>
               </Button>
             </div>
           </div>
@@ -467,7 +605,11 @@ export default function Component() {
                 <Card key={item.Menu_Item_ID} className="flex flex-col justify-between bg-container-card border-2 border-black">
                   <CardContent className="p-4 flex flex-col items-center">
                     <Image src={`/imgs/${item.Menu_Item_ID.toLowerCase().replaceAll(' ', '')}.png?height=100&width=100`} alt={item.Menu_Item_ID} width={100} height={100} className="mb-2" />
-                    <h3 className="font-bold text-white">{item.Menu_Item_ID}</h3>
+                    <h3 className="font-bold text-white">
+                      <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                        {item.Menu_Item_ID}
+                      </Translate>  
+                    </h3>
                     <p className="text-white">
                       ${selectedCategory === 'Appetizers' ? '3.00' : selectedCategory === 'Drinks' ? '2.00' : '0.00'}
                     </p>
@@ -488,7 +630,11 @@ export default function Component() {
               ))}
             </div>
             <div className="flex justify-end mt-4">
-              <Button onClick={addItemsToCart} className="bg-panda-orange hover:bg-panda-orange-light text-white">Add To Order</Button>
+              <Button onClick={addItemsToCart} className="bg-panda-orange hover:bg-panda-orange-light text-white text-lg">
+                <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                  Add To Order
+                </Translate>
+              </Button>
             </div>
           </>
         )}
@@ -497,19 +643,36 @@ export default function Component() {
       {/* Right Sidebar - Cart */}
       <div className="w-64 bg-dark-sidebar p-4 pt-20 flex flex-col">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Cart</h2>
+          <h2 className="text-xl font-bold">
+            <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+              Cart
+            </Translate>
+          </h2>
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="secondary" size="sm">Edit</Button>
+              <Button variant="secondary" size="sm">
+                <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                  Edit
+                </Translate>
+              </Button>
             </DialogTrigger>
             <DialogContent className="bg-dialog-dark text-white">
               <DialogHeader>
-                <DialogTitle>Edit Cart</DialogTitle>
+                <DialogTitle>
+                  <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                    Edit Cart
+                  </Translate>
+                </DialogTitle>
               </DialogHeader>
               <ScrollArea className="h-[50vh]">
                 {cart.items.map((item, index) => (
                   <div key={index} className="flex justify-between items-center mb-2">
-                    <span>{item.name} (x{item.quantity})</span>
+                    <span>
+                      <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                        {item.name}
+                      </Translate> 
+                      (x{item.quantity})
+                    </span>
                     <Button variant="destructive" size="icon" onClick={() => removeFromCart(index)}>
                       <X className="h-4  w-4" />
                     </Button>
@@ -522,30 +685,50 @@ export default function Component() {
         <ScrollArea className="flex-grow mb-4">
           {cart.items.map((item, index) => (
             <div key={index} className="mb-2">
-              <span>{item.name} (x{item.quantity})</span>
-              {item.details && <p className="text-sm text-gray-300">{item.details}</p>}
+              <span>
+                <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                  {item.name}
+                </Translate> (x{item.quantity})
+              </span>
+              <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                {item.details && <p className="text-sm text-gray-300">{item.details}</p>}
+              </Translate> 
               <span className="float-right">${(item.price * item.quantity).toFixed(2)}</span>
             </div>
           ))}
         </ScrollArea>
         <div>
           <div className="flex justify-between mb-2">
-            <span>Subtotal:</span>
+            <span>
+              <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                Subtotal:
+              </Translate>
+            </span>
             <span>${cart.total.toFixed(2)}</span>
           </div>
           <div className="flex justify-between mb-2">
-            <span>Tax:</span>
+            <span>
+              <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                Tax:
+              </Translate>
+            </span>
             <span>${cart.tax.toFixed(2)}</span>
           </div>
           <div className="flex justify-between font-bold mb-4">
-            <span>Total:</span>
+            <span>
+              <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                Total:
+              </Translate>
+            </span>
             <span>${(cart.total + cart.tax).toFixed(2)}</span>
           </div>
           <Button 
             className="w-full mb-2 bg-panda-orange hover:bg-panda-orange-light text-white" 
             onClick={() => setShowCheckoutDialog(true)}
           >
-            Checkout
+            <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+              Checkout
+            </Translate>
           </Button>
         </div>
       </div>
@@ -554,30 +737,56 @@ export default function Component() {
       <Dialog open={showCheckoutDialog} onOpenChange={setShowCheckoutDialog}>
         <DialogContent className="bg-container-card text-white border-none">
           <DialogHeader>
-            <DialogTitle className="text-2xl">Checkout</DialogTitle>
+            <DialogTitle className="text-2xl">
+              <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                Checkout
+              </Translate>
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <h3 className="text-xl underline">Summary</h3>
+            <h3 className="text-xl underline">
+              <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                Summary
+              </Translate>
+            </h3>
             {cart.items.map((item, index) => (
               <div key={index} className="flex justify-between">
                 <div>
-                  <div className="font-bold">{item.name}</div>
-                  {item.details && <div className="text-sm">{item.details}</div>}
+                  <div className="font-bold">
+                    <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                      {item.name}
+                    </Translate>
+                  </div>
+                  <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                    {item.details && <div className="text-sm">{item.details}</div>}
+                  </Translate>
                 </div>
                 <div>${(item.price * item.quantity).toFixed(2)}</div>
               </div>
             ))}
             <div className="border-t pt-2">
               <div className="flex justify-between">
-                <span>Sub Total</span>
+                <span>
+                  <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                    Sub Total
+                  </Translate>
+                </span>
                 <span>${cart.total.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Tax</span>
+                <span>
+                  <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                    Tax
+                  </Translate>
+                </span>
                 <span>${cart.tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between font-bold">
-                <span>Total</span>
+                <span> 
+                  <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                    Total
+                  </Translate>
+                </span>
                 <span>${(cart.total + cart.tax).toFixed(2)}</span>
               </div>
             </div>
@@ -587,7 +796,9 @@ export default function Component() {
               className="flex-1 bg-confirm-button hover:bg-button-hover"
               onClick={handleCheckout}
             >
-              Confirm
+              <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                Confirm
+              </Translate>
             </Button>
           </div>
         </DialogContent>

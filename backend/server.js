@@ -227,70 +227,8 @@ app.post('/manager-view', async (req, res) => {
   }
 });
 
-//// THIS SECTION IS CODE FOR THE CUSTOMER VIEW ////
 // List of menu items to exclude
 const excludedItems = ['fortnite','Swag','(Special) GYATS', 'SEASONAL Bourbon Chicken', 'SEASONAL Salt Pepper Chicken', 'Bowl', 'Plate', 'Bigger Plate', 'Appetizer Container', 'Drink', 'AppetizerGYATS', 'Brocolli Beef'];
-
-const allergenMap = {
-  wheat: ['Flour', 'Wonton Wrapper'],
-  soy: ['Soy Sauce', 'Hoisin Sauce', 'Oyster Sauce'],
-  shellfish: ['Oyster Sauce'],
-  lactose: ['Cream Cheese'],
-  eggs: ['Wonton Wrapper'], // Wonton wrappers often contain eggs
-};
-
-const doesntContainMap = {
-  vegetarian: ['Beef', 'Chicken'],
-  vegan: ['Beef', 'Chicken', 'Cream Cheese', 'Oyster Sauce'],
-};
-
-async function get_allergens(menuItemId) {
-  const allergens = {
-    contains_allergens: [],
-    doesnt_contain: []
-  };
-
-  try {
-    const { rows } = await client.query(`
-      SELECT ii."Ingredient_Inventory_ID"
-      FROM "Menu_Item_Ingredient" mii
-      JOIN "Ingredient_Inventory" ii ON mii."Ingredient_Inventory_ID" = ii."Ingredient_Inventory_ID"
-      WHERE mii."Menu_Item_ID" = $1
-    `, [menuItemId]);
-
-    const ingredients = rows.map(row => row.Ingredient_Inventory_ID);
-
-    console.log('Ingredients:', ingredients);
-
-    // Check for allergens
-    for (const [allergen, allergenIngredients] of Object.entries(allergenMap)) {
-      if (ingredients.some(ingredient => allergenIngredients.includes(ingredient))) {
-        allergens.contains_allergens.push(allergen);
-      }
-    }
-
-    // Check for vegetarian and vegan
-    let isVegetarian = true;
-    let isVegan = true;
-    for (const ingredient of ingredients) {
-      if (doesntContainMap.vegetarian.includes(ingredient)) {
-        isVegetarian = false;
-        isVegan = false;
-        break;
-      }
-      if (doesntContainMap.vegan.includes(ingredient)) {
-        isVegan = false;
-      }
-    }
-    if (isVegetarian) allergens.doesnt_contain.push('vegetarian');
-    if (isVegan) allergens.doesnt_contain.push('vegan');
-
-  } catch (error) {
-    console.error('Error fetching allergens:', error);
-  }
-
-  return allergens;
-}
 
 app.post('/get-menu-items', async (req, res) => {
   try {
@@ -300,25 +238,13 @@ app.post('/get-menu-items', async (req, res) => {
       AND "Menu_Item_ID" NOT IN (${excludedItems.map((_, i) => `$${i + 1}`).join(', ')})
     `, excludedItems);
 
-    console.log('Fetched menu items:', rows);
-
-    const categorizedItems = {};
-
-    for (const item of rows) {
-      if (!categorizedItems[item.Category]) {
-        categorizedItems[item.Category] = [];
+    const categorizedItems = rows.reduce((acc, item) => {
+      if (!acc[item.Category]) {
+        acc[item.Category] = [];
       }
-
-      const allergens = await get_allergens(item.Menu_Item_ID);
-      console.log(`Allergens for ${item.Menu_Item_ID}:`, allergens);
-
-      categorizedItems[item.Category].push({
-        ...item,
-        ...allergens
-      });
-    }
-
-    console.log('Categorized items:', categorizedItems);
+      acc[item.Category].push(item);
+      return acc;
+    }, {});
 
     res.json(categorizedItems);
   } catch (error) {
@@ -398,7 +324,6 @@ app.post('/customer-view', async (req, res) => {
   }
 });
 
-//// THIS SECTION IS CODE FOR THE CASHIER VIEW ////
 app.post('/cashier-view', async (req, res) => {
   const { items, total, tax } = req.body;
   console.log("Recieved items: ", items);

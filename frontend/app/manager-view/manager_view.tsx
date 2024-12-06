@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { useRouter } from 'next/navigation'
 import { strict } from 'assert'
 import { report } from 'process'
+import { format, toZonedTime } from 'date-fns-tz'
 
 // Define types for our data structures
 type InventoryItem = {
@@ -178,6 +179,10 @@ export default function Component() {
     Z: [],
   });
 
+  const [xHour, setxHour] = React.useState(0);
+  const [xOrder, setxOrder] = React.useState(0);
+  const [xTotal, setxTotal] = React.useState(0);
+
   //gets Ingredient_Inventory table data from database to populate table in Inventory tab
   const fetchInventory = async () => {
     if (selectedSection === 'Inventory'){
@@ -305,8 +310,13 @@ export default function Component() {
     if (selectedReport === 'X'){
       try {
         const today = new Date();
-        const currDate = today.toISOString().split('T')[0];
+        const timeZone = 'America/Chicago';
+        const zonedDate = toZonedTime(today, timeZone);
+
+        const currDate = format(zonedDate, 'yyyy-MM-dd', { timeZone });
         const currTime = today.getHours();
+        console.log(currDate);
+        console.log(currTime);
 
         const response = await fetch(new URL('/manager-view', backendUrl), {
           method: 'POST',
@@ -334,12 +344,13 @@ export default function Component() {
 
         const data = await response.json();
         // console.log(data);
-
+          
         setReportData(prevState => ({
           ...prevState,
           X: data.xReport,
         }));
-        
+        console.log(reportData.X);
+
         alert('XReport fetched successfully!');
       }
 
@@ -893,11 +904,12 @@ export default function Component() {
         {reportData[selectedReport].map((item, index) => {
           if (selectedReport === 'X') {
             const xItem = item as XReportItem
+            console.log(xItem.Hour_Of_Day);
             return (
               <TableRow key={index}>
                 <TableCell>{xItem.Hour_Of_Day}</TableCell>
                 <TableCell>{xItem.Order_Count}</TableCell>
-                <TableCell>${xItem.Total_Sales_Revenue.toFixed(2)}</TableCell>
+                <TableCell>${xItem.Total_Sales_Revenue ? xItem.Total_Sales_Revenue.toFixed(2) : '0.00'}</TableCell>
               </TableRow>
             );
           }
