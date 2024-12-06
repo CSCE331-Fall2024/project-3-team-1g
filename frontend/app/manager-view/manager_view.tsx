@@ -179,6 +179,10 @@ export default function Component() {
     Z: [],
   });
 
+  const [xHour, setxHour] = React.useState(0);
+  const [xOrder, setxOrder] = React.useState(0);
+  const [xTotal, setxTotal] = React.useState(0);
+
   //gets Ingredient_Inventory table data from database to populate table in Inventory tab
   const fetchInventory = async () => {
     if (selectedSection === 'Inventory'){
@@ -340,12 +344,13 @@ export default function Component() {
 
         const data = await response.json();
         // console.log(data);
-
+          
         setReportData(prevState => ({
           ...prevState,
           X: data.xReport,
         }));
-        
+        console.log(reportData.X);
+
         alert('XReport fetched successfully!');
       }
 
@@ -899,11 +904,11 @@ export default function Component() {
         {reportData[selectedReport].map((item, index) => {
           if (selectedReport === 'X') {
             const xItem = item as XReportItem
+            console.log(xItem.Hour_Of_Day);
             return (
               <TableRow key={index}>
                 <TableCell>{xItem.Hour_Of_Day}</TableCell>
                 <TableCell>{xItem.Order_Count}</TableCell>
-                {/* <TableCell>${item.Cost_Per_Unit ? item.Cost_Per_Unit.toFixed(2) : '0.00'}</TableCell> */}
                 <TableCell>${xItem.Total_Sales_Revenue ? xItem.Total_Sales_Revenue.toFixed(2) : '0.00'}</TableCell>
               </TableRow>
             );
