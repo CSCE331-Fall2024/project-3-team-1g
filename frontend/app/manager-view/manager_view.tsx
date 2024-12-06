@@ -17,8 +17,6 @@ import { report } from 'process'
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 // Define types for our data structures
 type InventoryItem = {
@@ -61,9 +59,9 @@ const employeeData: Employee[] = [
 ]
 
 type XReportItem = {
-  Hour_Of_Day: number;
-  Order_Count: number;
-  Total_Sales_Revenue: number;
+  hour_of_day: number;
+  order_count: number;
+  total_sales_revenue: number;
 };
 
 type YReportItem = {
@@ -84,7 +82,7 @@ type ReportData = {
 
 const reportData: ReportData = {
   X: [
-    { Hour_Of_Day: 0, Order_Count: 0, Total_Sales_Revenue: 0 },
+    { hour_of_day: 0, order_count: 0, total_sales_revenue: 0 },
   ],
   Y: [
     { category: 'Opening Cash'},
@@ -316,7 +314,6 @@ export default function Component() {
         const now = dayjs().tz('America/Chicago');
         const currDate = now.format('YYYY-MM-DD');
         const currTime = now.hour();
-
         console.log(currDate);
         console.log(currTime);
 
@@ -906,12 +903,12 @@ export default function Component() {
         {reportData[selectedReport].map((item, index) => {
           if (selectedReport === 'X') {
             const xItem = item as XReportItem
-            console.log(xItem.Hour_Of_Day);
+            console.log(xItem.hour_of_day);
             return (
               <TableRow key={index}>
-                <TableCell>{xItem.Hour_Of_Day}</TableCell>
-                <TableCell>{xItem.Order_Count}</TableCell>
-                <TableCell>${xItem.Total_Sales_Revenue ? xItem.Total_Sales_Revenue.toFixed(2) : '0.00'}</TableCell>
+                <TableCell>{xItem.hour_of_day}</TableCell>
+                <TableCell>{xItem.order_count}</TableCell>
+                <TableCell>{xItem.total_sales_revenue}</TableCell>
               </TableRow>
             );
           }
