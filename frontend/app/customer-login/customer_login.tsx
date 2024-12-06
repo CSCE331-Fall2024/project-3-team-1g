@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from 'next/navigation'
 import Link from "next/link"
+import Image from 'next/image' // Import the Image component
 import axios from 'axios'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -138,7 +139,9 @@ export default function CustomerLogin() {
       <header className="bg-dark-background text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
-            <img className="h-10" alt="Logo" />
+          <div className="bg-white rounded-full p-1"> {}
+              <Image src="/logo.png" alt="Logo" width={40} height={40} /> {}
+            </div>
             <span className="text-2xl font-bold">Panda Express</span>
           </Link>
           <Link href="/employee-login">
