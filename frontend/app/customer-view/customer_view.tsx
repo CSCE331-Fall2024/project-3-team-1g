@@ -441,28 +441,28 @@ export default function Component() {
           <Image src="/imgs/panda.png?height=40&width=40" alt="Panda Express Logo" width={40} height={40} className="mr-2" />
           <h1 className="text-2xl font-bold">Panda Express</h1>
         </div>
-        <Button
-          onClick={toggleLanguage}> 
-          <span className="text-lg text-white font-bold">
-            {isSpanish ? "Español" : "English"}
-          </span>
-        </Button>
-        <Link href="employee-login">
-          <Button>
-            <span className="text-lg text-white font-bold">
-              <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
-                Log out
-              </Translate>
-            </span></Button>
-        </Link>
+        <div className="flex items-center space-x-2">
+          <Button onClick={toggleLanguage}>
+            <span className="text-lg font-bold">
+              {isSpanish ? "English" : "Español"}
+            </span>
+          </Button>
+          <Link href="employee-login">
+            <Button>
+              <span className="text-lg text-white font-bold">
+                <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
+                  Log out
+                </Translate>
+              </span>
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Left Sidebar */}
       <div className="w-64 bg-dark-sidebar p-4 pt-20">
         <h2 className="text-xl font-bold mb-4">
-          <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
-            Hello, {customerName}
-          </Translate>
+          {isSpanish ? `Hola, ${customerName}` : `Hello, ${customerName}`}
         </h2>
 
         <ScrollArea className="h-[calc(100vh-12rem)]">
