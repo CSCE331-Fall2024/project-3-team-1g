@@ -273,8 +273,8 @@ export default function Component() {
   const ensureAllergenArrays = (item: MenuItem): MenuItem => {
     return {
       ...item,
-      contains_allergens: item.contains_allergens || [],
-      doesnt_contain: item.doesnt_contain || []
+      contains_allergens: item.contains_allergens || ["tree nuts", "peanuts", "wheat"],
+      doesnt_contain: item.doesnt_contain || ["vegetarian", "vegan"],
     };
   };
 
