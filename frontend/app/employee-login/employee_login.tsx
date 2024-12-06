@@ -3,10 +3,11 @@
 import { useState } from "react"
 import { useRouter } from 'next/navigation'
 import Link from "next/link"
-import Image from 'next/image' // Import the Image component
+import Image from 'next/image' 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import styles from '../customer-login/customer_login.module.css'
 
 export default function EmployeeLogin() {
   const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
@@ -54,7 +55,8 @@ export default function EmployeeLogin() {
   }
 
   return (
-    <>
+    <div className={styles.background}>
+    
       <header className="bg-[#DC0032] text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
@@ -127,6 +129,6 @@ export default function EmployeeLogin() {
           </div>
         </div>
       </main>
-    </>
+    </div>
   )
 }
