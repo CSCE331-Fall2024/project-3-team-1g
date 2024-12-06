@@ -3,9 +3,11 @@
 import { useState } from "react"
 import { useRouter } from 'next/navigation'
 import Link from "next/link"
+import Image from 'next/image' 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import styles from '../customer-login/customer_login.module.css'
 
 export default function EmployeeLogin() {
   const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
@@ -35,13 +37,9 @@ export default function EmployeeLogin() {
       }
       localStorage.setItem('employeeName', data.name);
       alert(data.message)
-      
-
 
       const redirectPath = loginType === 'manager' ? '/manager-view' : '/cashier-view';
       router.push(redirectPath)
-      
-
 
     } catch (err) {
       if (err instanceof Error) {
@@ -56,17 +54,18 @@ export default function EmployeeLogin() {
     // Google OAuth 
   }
 
-
-  
   return (
-    <>
+    <div className={styles.background}>
+    
       <header className="bg-[#DC0032] text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-3">
-             <img className="h-10"></img>
+            <div className="bg-white rounded-full p-1"> {}
+              <Image src="/logo.png" alt="Logo" width={40} height={40} /> {}
+            </div>
             <span className="text-2xl font-bold">Panda Express</span>
           </Link>
-          <Button asChild variant="ghost" className="text-white hover:text-[#DC0032] hover:bg-white">
+          <Button asChild variant="ghost" className="text-white bg-black hover:text-[#DC0032] hover:bg-white">
             <Link href="/customer-login">Customer Login</Link>
           </Button>
         </div>
@@ -130,6 +129,6 @@ export default function EmployeeLogin() {
           </div>
         </div>
       </main>
-    </>
+    </div>
   )
 }
