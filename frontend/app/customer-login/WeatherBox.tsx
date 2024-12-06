@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import styles from './WeatherBox.module.css'; // Import the CSS module
 
 const WeatherBox = () => {
     const [weather, setWeather] = useState(null);
@@ -12,10 +13,10 @@ const WeatherBox = () => {
             .catch(error => console.error("Error fetching weather data:", error));
     }, [apiKey]);
 
-    if (!weather) return <div>Loading Weather.....</div>;
+    if (!weather) return <div>Loading weather...</div>;
 
     return (
-        <div className="weather-box text-center" >
+        <div className={styles.weatherBox}>
             <h3>Weather in {weather.name}</h3>
             <p>Conditions: {weather.weather[0].description}</p>
             <p>Temperature: {weather.main.temp}° F</p>

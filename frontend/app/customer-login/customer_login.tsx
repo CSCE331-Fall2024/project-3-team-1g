@@ -153,7 +153,6 @@ export default function CustomerLogin() {
           <h1 className="text-4xl font-bold text-white mb-8">
             {translatedText.header}
           </h1>
-          <WeatherBox /> {/* Use the WeatherBox component */}
           <div className="w-full max-w-md bg-[#DC0032] rounded-lg p-6 space-y-6">
             <h2 className="text-2xl font-bold text-white text-center">
               {translatedText.login}
@@ -201,6 +200,7 @@ export default function CustomerLogin() {
           </Button>
         </div>
       </main>
+      <WeatherBox /> {/* Use the WeatherBox component */}
     </GoogleOAuthProvider>
   )
 }
