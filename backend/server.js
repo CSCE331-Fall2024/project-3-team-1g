@@ -195,6 +195,7 @@ app.post('/manager-view', async (req, res) => {
 
     const { reportType, date, time } = req.body;
     // console.log("Report type: ", reportType);
+
     //QUERY FOR FETCHING XREPORT DATA
     if (reportType === 'X'){
       const XReportRows = await client.query("SELECT \"Order\".\"Time\" AS Hour_Of_Day, " + 
@@ -208,8 +209,9 @@ app.post('/manager-view', async (req, res) => {
                         "GROUP BY \"Order\".\"Time\" " +
                         "ORDER BY \"Order\".\"Time\"",
                         [date, time]);
-      // return res.json({xReport: XReportRows.rows});
+      return res.json({xReport: XReportRows.rows});
     }
+
     //QUERY FOR FETCHING YREPORT DATA
     else if (reportType === 'Y'){
       const YReportRows = await client.query(`
@@ -221,6 +223,23 @@ app.post('/manager-view', async (req, res) => {
       `);
 
       return res.json({ yReport: YReportRows.rows });
+    }
+
+    //QUERY FOR FETCHING ZREPORT DATA
+    else if (reportType === 'Z'){
+      const ZReportRows = await client.query("SELECT \"Order\".\"Time\" AS Hour_Of_Day, " + 
+                                "COUNT(\"Order\".\"Order_ID\") AS Order_Count, " +
+                                "SUM(\"Container\".\"Price\") AS Total_Sales_Revenue " +
+                        "FROM \"Order\" " +
+                        "JOIN \"Order_Container\" ON \"Order\".\"Order_ID\" = \"Order_Container\".\"Order_ID\" " +
+                        "JOIN \"Container\" ON \"Order_Container\".\"Type\" = \"Container\".\"Container_ID\" " +
+                        "WHERE \"Order\".\"Date\" = $1 " +
+                        "AND \"Order\".\"Time\" <= 22 " +
+                        "GROUP BY \"Order\".\"Time\" " +
+                        "ORDER BY \"Order\".\"Time\"",
+                        [date, time]);
+
+      return res.json({ zReport: ZReportRows.rows });
     }
 
     // const testQuery = await client.query('SELECT * FROM "Order"');

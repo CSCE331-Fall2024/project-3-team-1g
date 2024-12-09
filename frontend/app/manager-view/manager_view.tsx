@@ -121,9 +121,9 @@ const images: Record<string, string> = {
 };
 
 const reportColumns = {
-  X: ['Hour_Of_Day', 'Order_Count', 'Total_Sales_Revenue'],
-  Y: ['Category', 'Amount'], //temporary
-  Z: ['Hour_Of_Day', 'Order_Count', 'Total_Sales_Revenue'],
+  X: ['Hour Of Day', 'Order Count', 'Total Sales Revenue'],
+  Y: ['Week Number', 'Order Count'], 
+  Z: ['Hour Of Day', 'Order Count', 'Total Sales Revenue'],
 };
 
 export default function Component() {
@@ -358,8 +358,7 @@ export default function Component() {
   };
 
   const fetchYReportData = async () => {
-    
-      try {
+    try {
         const response = await fetch(new URL('/manager-view', backendUrl), {
           method: 'POST',
           headers: {
@@ -403,6 +402,68 @@ export default function Component() {
       }
     
   };
+
+  const fetchZReportData = async () => {
+    try {
+      const today = new Date();
+      const timeZone = 'America/Chicago';
+      const zonedDate = toZonedTime(today, timeZone);
+
+      const currDate = format(zonedDate, 'yyyy-MM-dd', { timeZone });
+      const currTime = today.getHours();
+      // console.log(currDate);
+      // console.log(currTime);
+
+      const response = await fetch(new URL('/manager-view', backendUrl), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reportType: 'Z',
+          date: currDate,
+          time: currTime,
+        }),
+      });
+    
+      //checks if HTTP request was successful, throws status code if not
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      //gets the Content-Type header from the server's response, uses that to determine format of the returned data
+      const contentType = response.headers.get('content-type');
+
+      //if the Content-Type header is missing or doesn't contain application/json, throws an error (we expect the response to be JSON format)
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Invalid content type, expected JSON');
+      }
+
+      const data = await response.json();
+
+        
+      setReportData(prevState => ({
+        ...prevState,
+        Z: data.zReport,
+      }));
+      console.log(reportData.Z);
+
+      alert('ZReport fetched successfully!');
+    }
+
+    catch (error) {
+      if (error instanceof Error)
+        console.error('Error fetching ZReport:', error.message);
+      else
+        console.error('Unexpected error:', error);
+    }
+  };
+
+  const clearTotals = async () => {
+    setReportData((prevData) => ({
+      ...prevData, 
+      X: [],
+  }))};
 
   useEffect(() => {
     const name = localStorage.getItem('employeeName');
@@ -940,9 +1001,9 @@ export default function Component() {
       {reportData[selectedReport] && reportData[selectedReport].length > 0 ? (
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="text-lg bg-white hover:bg-current">
             {reportColumns[selectedReport].map((header, index) => (
-              <TableHead key={index}>{header}</TableHead>
+              <TableHead className="text-black" key={index}>{header}</TableHead>
             ))}
           </TableRow>
         </TableHeader>
@@ -993,6 +1054,10 @@ export default function Component() {
           }
           else if (selectedReport === 'Y'){
             fetchYReportData();
+          }
+          else if (selectedReport === 'Z'){
+            fetchZReportData();
+            clearTotals();
           }
         }}>
           <FileText className="mr-2 h-4 w-4" />
