@@ -470,10 +470,10 @@ export default function Component() {
             <Button
               key={category}
               variant={selectedCategory === category ? "secondary" : "ghost"}
-              className={`w-full justify-start mb-2 text-white ${selectedCategory === category ? 'bg-panda-orange hover:bg-panda-orange-light' : 'hover:bg-panda-red-light'}`}
+              className={`w-full justify-start mb-2 text-white ${selectedCategory === category ? 'bg-panda-orange text-black hover:bg-panda-orange-light' : 'hover:bg-panda-red-light'}`}
               onClick={() => setSelectedCategory(category)}
             >
-              <span className="text-lg text-white font-bold">
+              <span className="text-lg font-bold">
                 <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
                   {category}
                 </Translate>
@@ -590,7 +590,7 @@ export default function Component() {
               <Button 
                 onClick={addMainsToCart} 
                 disabled={!selectedContainer || selectedSides.length !== 1 || selectedEntrees.length !== containers.find(c => c.name === selectedContainer)?.entrees}
-                className="bg-panda-orange hover:bg-panda-orange-light text-white text-lg"
+                className="bg-panda-orange text-black hover:bg-panda-orange-light text-lg font-bold"
               >
                 <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
                 Add to Order </Translate>
@@ -630,7 +630,7 @@ export default function Component() {
               ))}
             </div>
             <div className="flex justify-end mt-4">
-              <Button onClick={addItemsToCart} className="bg-panda-orange hover:bg-panda-orange-light text-white text-lg">
+              <Button onClick={addItemsToCart} className="bg-panda-orange hover:bg-panda-orange-light text-black font-bold text-lg">
                 <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
                   Add To Order
                 </Translate>
@@ -723,7 +723,7 @@ export default function Component() {
             <span>${(cart.total + cart.tax).toFixed(2)}</span>
           </div>
           <Button 
-            className="w-full mb-2 bg-panda-orange hover:bg-panda-orange-light text-white" 
+            className="w-full mb-2 bg-panda-orange hover:bg-panda-orange-light text-black font-bold text-lg" 
             onClick={() => setShowCheckoutDialog(true)}
           >
             <Translate isSpanish={isSpanish} translateText={translateText} translatedCache={translatedCache}>
