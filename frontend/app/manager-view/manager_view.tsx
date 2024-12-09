@@ -14,9 +14,10 @@ import { Input } from "@/components/ui/input"
 import { useRouter } from 'next/navigation'
 import { strict } from 'assert'
 import { report } from 'process'
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
+// import dayjs from 'dayjs'
+// import utc from 'dayjs/plugin/utc'
+// import timezone from 'dayjs/plugin/timezone'
+import { format, toZonedTime } from 'date-fns-tz'
 
 // Define types for our data structures
 type InventoryItem = {
@@ -31,13 +32,6 @@ type Employee = {
   Name: string;
   Type: string;
   Hourly_Salary: number;
-}
-
-type ReportItem = {
-  category: string;
-  Hour_Of_Day?: string; // Optional for X reports
-  Order_Count?: number; // Optional for X reports
-  Total_Sales_Revenue?: number; // Optional for X reports
 }
 
 type MenuItem = {
@@ -65,13 +59,14 @@ type XReportItem = {
 };
 
 type YReportItem = {
-  category: string;
+  week_number: number;
+  order_count: number;
 };
 
 type ZReportItem = {
-  Hour_Of_Day: number;
-  Order_Count: number;  
-  Total_Sales_Revenue: number;
+  hour_of_day: number;
+  order_count: number;
+  total_sales_revenue: number;
 };
 
 type ReportData = {
@@ -85,10 +80,10 @@ const reportData: ReportData = {
     { hour_of_day: 0, order_count: 0, total_sales_revenue: 0 },
   ],
   Y: [
-    { category: 'Opening Cash'},
+    { week_number: 0, order_count: 0},
   ],
   Z: [
-    { Hour_Of_Day: 0, Order_Count: 0, Total_Sales_Revenue: 0 }
+    { hour_of_day: 0, order_count: 0, total_sales_revenue: 0 }
   ],
 };
 
@@ -126,9 +121,9 @@ const images: Record<string, string> = {
 };
 
 const reportColumns = {
-  X: ['Hour_Of_Day', 'Order_Count', 'Total_Sales_Revenue'],
-  Y: ['Category', 'Amount'], //temporary
-  Z: ['Hour_Of_Day', 'Order_Count', 'Total_Sales_Revenue'],
+  X: ['Hour Of Day', 'Order Count', 'Total Sales Revenue'],
+  Y: ['Week Number', 'Order Count'], 
+  Z: ['Hour Of Day', 'Order Count', 'Total Sales Revenue'],
 };
 
 export default function Component() {
@@ -150,6 +145,7 @@ export default function Component() {
   const [selectedItemForDelete, setSelectedItemForDelete] = useState<InventoryItem | null>(null);
   const [selectedEmployeeForEdit, setSelectedEmployeeForEdit] = useState<Employee | null>(null);
   const [selectedEmployeeForDelete, setSelectedEmployeeForDelete] = useState<Employee | null>(null);
+  const [selectedMenuForEdit, setSelectedMenuForEdit] = useState<MenuItem | null>(null);
 
   const [showAddDialog, setShowAddDialog] = useState<boolean>(false)
   const [showEditDialog, setShowEditDialog] = useState<boolean>(false)
@@ -181,10 +177,6 @@ export default function Component() {
     Z: [],
   });
 
-  const [xHour, setxHour] = React.useState(0);
-  const [xOrder, setxOrder] = React.useState(0);
-  const [xTotal, setxTotal] = React.useState(0);
-
   //gets Ingredient_Inventory table data from database to populate table in Inventory tab
   const fetchInventory = async () => {
     if (selectedSection === 'Inventory'){
@@ -210,7 +202,7 @@ export default function Component() {
         }
 
         const data = await response.json();
-        console.log(data);
+        // console.log(data);
 
         setInventoryItems(data.inventory);
       }
@@ -248,7 +240,7 @@ export default function Component() {
         }
 
         const data = await response.json();
-        console.log(data);
+        // console.log(data);
 
         setEmployees(data.employees);
       }
@@ -311,11 +303,14 @@ export default function Component() {
   const fetchXReportData = async () => {
     if (selectedReport === 'X'){
       try {
-        const now = dayjs().tz('America/Chicago');
-        const currDate = now.format('YYYY-MM-DD');
-        const currTime = now.hour();
-        console.log(currDate);
-        console.log(currTime);
+        const today = new Date();
+        const timeZone = 'America/Chicago';
+        const zonedDate = toZonedTime(today, timeZone);
+
+        const currDate = format(zonedDate, 'yyyy-MM-dd', { timeZone });
+        const currTime = today.getHours();
+        // console.log(currDate);
+        // console.log(currTime);
 
         const response = await fetch(new URL('/manager-view', backendUrl), {
           method: 'POST',
@@ -323,8 +318,55 @@ export default function Component() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            reportType: 'X',
             date: currDate,
             time: currTime,
+          }),
+        });
+      
+        //checks if HTTP request was successful, throws status code if not
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        //gets the Content-Type header from the server's response, uses that to determine format of the returned data
+        const contentType = response.headers.get('content-type');
+
+        //if the Content-Type header is missing or doesn't contain application/json, throws an error (we expect the response to be JSON format)
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Invalid content type, expected JSON');
+        }
+
+        const data = await response.json();
+
+          
+        setReportData(prevState => ({
+          ...prevState,
+          X: data.xReport,
+        }));
+        console.log(reportData.X);
+
+        alert('XReport fetched successfully!');
+      }
+
+      catch (error) {
+        if (error instanceof Error)
+          console.error('Error fetching XReport:', error.message);
+        else
+          console.error('Unexpected error:', error);
+      }
+    }
+  };
+
+  const fetchYReportData = async () => {
+    try {
+        const response = await fetch(new URL('/manager-view', backendUrl), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            reportType: 'Y',
           }),
         });
       
@@ -346,21 +388,83 @@ export default function Component() {
           
         setReportData(prevState => ({
           ...prevState,
-          X: data.xReport,
+          Y: data.yReport,
         }));
-        console.log(reportData.X);
+        console.log(data.yReport);
 
-        alert('XReport fetched successfully!');
+        alert('YReport fetched successfully!');
       }
 
       catch (error) {
         if (error instanceof Error)
-          console.error('Error fetching XReport:', error.message);
+          console.error('Error fetching YReport:', error.message);
         else
           console.error('Unexpected error:', error);
       }
+    
+  };
+
+  const fetchZReportData = async () => {
+    try {
+      const today = new Date();
+      const timeZone = 'America/Chicago';
+      const zonedDate = toZonedTime(today, timeZone);
+
+      const currDate = format(zonedDate, 'yyyy-MM-dd', { timeZone });
+      const currTime = today.getHours();
+      // console.log(currDate);
+      // console.log(currTime);
+
+      const response = await fetch(new URL('/manager-view', backendUrl), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reportType: 'Z',
+          date: currDate,
+          time: currTime,
+        }),
+      });
+    
+      //checks if HTTP request was successful, throws status code if not
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      //gets the Content-Type header from the server's response, uses that to determine format of the returned data
+      const contentType = response.headers.get('content-type');
+
+      //if the Content-Type header is missing or doesn't contain application/json, throws an error (we expect the response to be JSON format)
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Invalid content type, expected JSON');
+      }
+
+      const data = await response.json();
+
+        
+      setReportData(prevState => ({
+        ...prevState,
+        Z: data.zReport,
+      }));
+      console.log(reportData.Z);
+
+      alert('ZReport fetched successfully!');
+    }
+
+    catch (error) {
+      if (error instanceof Error)
+        console.error('Error fetching ZReport:', error.message);
+      else
+        console.error('Unexpected error:', error);
     }
   };
+
+  const clearTotals = async () => {
+    setReportData((prevData) => ({
+      ...prevData, 
+      X: [],
+  }))};
 
   useEffect(() => {
     const name = localStorage.getItem('employeeName');
@@ -618,13 +722,41 @@ export default function Component() {
     }
   }
 
-  // const handleEditMenuItem = (category: string, editedItem: MenuItem) => {
-  //   setMenuItemsState({
-  //     ...menuItemsState,
-  //     [category]: menuItemsState[category].map(item => item.id === editedItem.id ? editedItem : item)
-  //   })
-  //   setShowEditDialog(false)
-  // }
+  const handleEditMenuItem = async (item_id: string, category: string, inventory: number, servsize: number, item_units: string) => {
+    try {
+      const response = await fetch(new URL('/manager-view', backendUrl), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'editMen',
+          item_id,
+          category,
+          inventory,
+          servsize,
+          item_units,
+        }),
+      });
+    
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to edit menu item');
+      }
+
+      const data = await response.json();
+      console.log(data.message);
+      alert('Menu item edited successfully!');
+      setShowAddDialog(false);
+    }
+
+    catch (error) {
+      if (error instanceof Error)
+        console.error('Error editing menu item:', error.message);
+      else
+        console.error('Unexpected error:', error);
+    }
+  }
 
   // const handleDeleteMenuItem = (category: string, id: string) => {
   //   setMenuItemsState({
@@ -883,8 +1015,13 @@ export default function Component() {
             key={reportType}
             variant={selectedReport === reportType ? "secondary" : "ghost"}
             className={`text-white text-lg ${selectedReport === reportType ? 'bg-[#FF9636] hover:bg-[#FFA54F]' : 'hover:bg-[#E03A3C]'}`}
-            onClick={() => setSelectedReport(reportType as 'X' | 'Y' | 'Z')}
-          >
+            onClick={() =>  { 
+              setSelectedReport(reportType as 'X' | 'Y' | 'Z');
+              // console.log(reportType);
+              // console.log(selectedReport);
+            }}
+          > 
+          
             {reportType} Report
           </Button>
         ))}
@@ -893,9 +1030,9 @@ export default function Component() {
       {reportData[selectedReport] && reportData[selectedReport].length > 0 ? (
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="text-lg bg-white hover:bg-current">
             {reportColumns[selectedReport].map((header, index) => (
-              <TableHead key={index}>{header}</TableHead>
+              <TableHead className="text-black" key={index}>{header}</TableHead>
             ))}
           </TableRow>
         </TableHeader>
@@ -903,7 +1040,7 @@ export default function Component() {
         {reportData[selectedReport].map((item, index) => {
           if (selectedReport === 'X') {
             const xItem = item as XReportItem
-            console.log(xItem.hour_of_day);
+            //console.log(xItem.hour_of_day);
             return (
               <TableRow key={index}>
                 <TableCell>{xItem.hour_of_day}</TableCell>
@@ -916,9 +1053,9 @@ export default function Component() {
             const zItem = item as ZReportItem
             return (
               <TableRow key={index}>
-                <TableCell>{zItem.Hour_Of_Day}</TableCell>
-                <TableCell>{zItem.Order_Count}</TableCell>
-                <TableCell>${zItem.Total_Sales_Revenue.toFixed(2)}</TableCell>
+                <TableCell>{zItem.hour_of_day}</TableCell>
+                <TableCell>{zItem.order_count}</TableCell>
+                <TableCell>{zItem.total_sales_revenue}</TableCell>
               </TableRow>
             );
           } 
@@ -926,7 +1063,8 @@ export default function Component() {
             const yItem = item as YReportItem
             return (
               <TableRow key={index}>
-                <TableCell>{yItem.category}</TableCell>
+                <TableCell>{yItem.week_number}</TableCell>
+                <TableCell>{yItem.order_count}</TableCell>
               </TableRow>
             );
           }
@@ -934,12 +1072,21 @@ export default function Component() {
       </TableBody>
       </Table>
       ) : (
+        // default message if there is no data to show (ex. no orders made today)
         <p>No data available</p>
       )}
       <div className="flex gap-2">
         <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg" onClick={() => {
-          if (selectedReport === 'X') {
+          console.log(`Generate Report clicked for: ${selectedReport}`);
+          if (selectedReport === 'X') {     //hard coding each bc retesting a function to take a value will take too long
             fetchXReportData();
+          }
+          else if (selectedReport === 'Y'){
+            fetchYReportData();
+          }
+          else if (selectedReport === 'Z'){
+            fetchZReportData();
+            clearTotals();
           }
         }}>
           <FileText className="mr-2 h-4 w-4" />
@@ -989,9 +1136,34 @@ export default function Component() {
                   />
                   <h3 className="font-bold text-white">{item.Menu_Item_ID}</h3>
                   <div className="flex gap-2 mt-2">
-                    <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(true)}>
+                    {/* Edit Button with Dialog */}
+                <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={() => {
+                      setSelectedMenuForEdit(item);
+                      setShowEditDialog(true);
+                    }}>
                       <Edit className="h-4 w-4" />
                     </Button>
+                  </DialogTrigger>
+                  {selectedMenuForEdit && (
+                  <DialogContent className="bg-[#2C2C2C] text-white">
+                    <DialogHeader>
+                      <DialogTitle>Edit {selectedMenuForEdit.Menu_Item_ID}</DialogTitle>
+                    </DialogHeader>
+                    <div className = "space-y-4">
+                      <Input type="string" placeholder="Category" className="bg-[#1C1C1C] border-none" onChange={(e) => setMenCategory(e.target.value)}/>
+                      <Input type="number" placeholder="Active_Inventory"className="bg-[#1C1C1C] border-none" onChange={(e) => setMenInventory(Number(e.target.value))}/>
+                      <Input type="number" placeholder="Serving_Size" className="bg-[#1C1C1C] border-none" onChange={(e) => setMenServSize(Number(e.target.value))}/>
+                      <Input type="string" placeholder="Units" className="bg-[#1C1C1C] border-none" onChange={(e) => setMenUnits(e.target.value)}/>
+                      <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleEditMenuItem(selectedMenuForEdit.Menu_Item_ID, menCategory, menInventory, menServSize, menUnits)}>Edit Item</Button>
+                    </div>
+                  </DialogContent>
+                  )}
+                </Dialog>
+                    {/* <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(true)}>
+                      <Edit className="h-4 w-4" />
+                    </Button> */}
                   </div>
                 </CardContent>
               </Card>

@@ -111,7 +111,6 @@ app.post('/manager-view', async (req, res) => {
     const inventoryRows = await client.query('SELECT * FROM "Ingredient_Inventory"');
     
     const { action, id, stock, units, cpu } = req.body;
-    // console.log('Received data:', req.body); //debugging
 
     //METHOD FOR ADDING NEW ITEMS TO INVENTORY
     if (action === 'add') {
@@ -147,7 +146,6 @@ app.post('/manager-view', async (req, res) => {
 
     //QUERY FOR FETCHING EMPLOYEE TABLE
     const employeeRows = await client.query('SELECT * FROM "Employee"');
-    // console.log(inventoryRows.rows); //debugging
 
     //METHOD FOR ADDING NEW EMPLOYEE
     if (action==='addEmp'){
@@ -156,7 +154,6 @@ app.post('/manager-view', async (req, res) => {
         [id, stock, units, cpu]
       );
 
-      // console.log('Adding inventory item with:', { id, stock, units, cpu });
       return res.json({ message: 'Employee added successfully' });
     }
 
@@ -173,17 +170,16 @@ app.post('/manager-view', async (req, res) => {
 
     //METHOD FOR DELETING EMPLOYEE
     else if (action ==='deleteEmp'){
-      await client.query(
-        'DELETE FROM "Employee" WHERE "Employee_ID" = $1', [id],
-      );
+      await client.query('DELETE FROM "Employee_Log" WHERE "Employee_ID" = $1', [id]);
+      await client.query('DELETE FROM "Weekly_Schedule" WHERE "Employee_ID" = $1', [id]);
+      await client.query('DELETE FROM "Employee" WHERE "Employee_ID" = $1', [id],);
 
-      console.log('Deleting employee with:', { id, stock, units, cpu });
+      // console.log('Deleting employee with:', { id, stock, units, cpu });
       return res.json({ message: 'Employee deleted successfully' });
     }
 
     //QUERY FOR FETCHING MENU_ITEM TABLE
     const menuRows = await client.query('SELECT * FROM "Menu_Item"');
-    // console.log(menuItems.rows); //debugging
 
     const { item_id, category, inventory, servsize, item_units } = req.body;
     //METHOD FOR ADDING MENU ITEM
@@ -197,11 +193,23 @@ app.post('/manager-view', async (req, res) => {
       return res.json({ message: 'Menu item added successfully' });
     }
 
-    const { date, time } = req.body;
-    console.log("Received date:", date);
-    console.log("Received time:", time);
-    
-    const XReportRows = await client.query("SELECT \"Order\".\"Time\" AS Hour_Of_Day, " + 
+    //METHOD FOR EDITING MENU ITEM
+    else if (action==='editMen'){
+      await client.query(
+        'UPDATE "Menu_Item" SET "Category" = $2, "Active_Inventory" = $3, "Serving_Size" = $4, "Units" = $5 WHERE "Menu_Item_ID" = $1',
+        [item_id, category, inventory, servsize, item_units]
+      );
+
+      // console.log('Adding menu item with:', { item_id, category, inventory, servsize, item_units });
+      return res.json({ message: 'Menu item edited successfully' });
+    }
+
+    const { reportType, date, time } = req.body;
+    // console.log("Report type: ", reportType);
+
+    //QUERY FOR FETCHING XREPORT DATA
+    if (reportType === 'X'){
+      const XReportRows = await client.query("SELECT \"Order\".\"Time\" AS Hour_Of_Day, " + 
                                 "COUNT(\"Order\".\"Order_ID\") AS Order_Count, " +
                                 "SUM(\"Container\".\"Price\") AS Total_Sales_Revenue " +
                         "FROM \"Order\" " +
@@ -211,14 +219,48 @@ app.post('/manager-view', async (req, res) => {
                         "AND \"Order\".\"Time\" <= $2 " +
                         "GROUP BY \"Order\".\"Time\" " +
                         "ORDER BY \"Order\".\"Time\"",
-                      [date, time]);
-    console.log(XReportRows.rows);
+                        [date, time]);
+      return res.json({xReport: XReportRows.rows});
+    }
+
+    //QUERY FOR FETCHING YREPORT DATA
+    else if (reportType === 'Y'){
+      const YReportRows = await client.query(`
+            SELECT EXTRACT(WEEK FROM "Date") AS Week_Number,
+                  COUNT("Order_ID") AS Order_Count
+            FROM "Order"
+            GROUP BY EXTRACT(WEEK FROM "Date")
+            ORDER BY Week_Number
+      `);
+
+      return res.json({ yReport: YReportRows.rows });
+    }
+
+    //QUERY FOR FETCHING ZREPORT DATA
+    else if (reportType === 'Z'){
+      const ZReportRows = await client.query("SELECT \"Order\".\"Time\" AS Hour_Of_Day, " + 
+                                "COUNT(\"Order\".\"Order_ID\") AS Order_Count, " +
+                                "SUM(\"Container\".\"Price\") AS Total_Sales_Revenue " +
+                        "FROM \"Order\" " +
+                        "JOIN \"Order_Container\" ON \"Order\".\"Order_ID\" = \"Order_Container\".\"Order_ID\" " +
+                        "JOIN \"Container\" ON \"Order_Container\".\"Type\" = \"Container\".\"Container_ID\" " +
+                        "WHERE \"Order\".\"Date\" = $1 " +
+                        "AND \"Order\".\"Time\" <= 22 " +
+                        "GROUP BY \"Order\".\"Time\" " +
+                        "ORDER BY \"Order\".\"Time\"",
+                        [date]);
+
+      return res.json({ zReport: ZReportRows.rows });
+    }
+
+    // const testQuery = await client.query('SELECT * FROM "Order"');
 
     res.json({
       inventory: inventoryRows.rows,
       employees: employeeRows.rows,
       menu: menuRows.rows,
-      xReport: XReportRows.rows,
+      // xReport: XReportRows.rows,
+      // yReport: YReportRows.rows,
     });
   }
   catch (error) {
@@ -468,7 +510,7 @@ app.post('/cashier-view', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3007;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
