@@ -79,9 +79,9 @@ const allergenIcons = {
 }
 
 const containers: Container[] = [
-  { name: 'Bowl', sides: 1, entrees: 1, image: '/imgs/1black.png?height=100&width=100', price: 8, contains_allergens: [], doesnt_contain: [] },
-  { name: 'Plate', sides: 1, entrees: 2, image: '/imgs/2black.png?height=100&width=100', price: 10, contains_allergens: [], doesnt_contain: [] },
-  { name: 'Bigger Plate', sides: 1, entrees: 3, image: '/imgs/3black.png?height=100&width=100', price: 12, contains_allergens: [], doesnt_contain: [] },
+  { name: 'Bowl', sides: 1, entrees: 1, image: '/imgs/bowlsvg.png?height=100&width=100', price: 8, contains_allergens: [], doesnt_contain: [] },
+  { name: 'Plate', sides: 1, entrees: 2, image: '/imgs/platesvg.png?height=100&width=100', price: 10, contains_allergens: [], doesnt_contain: [] },
+  { name: 'Bigger Plate', sides: 1, entrees: 3, image: '/imgs/biggerplatesvg.png?height=100&width=100', price: 12, contains_allergens: [], doesnt_contain: [] },
 ];
 
 function AllergyIcons({ containsAllergens, doesntContain }: AllergyIconsProps) {
@@ -127,25 +127,6 @@ function AllergyIcons({ containsAllergens, doesntContain }: AllergyIconsProps) {
       ))}
     </div>
   )
-}
-
-function useTranslation(isSpanish: boolean, translateText: (text: string, targetLanguage: string) => Promise<string>, translatedCache: Record<string, string>) {
-  const t = useCallback(async (text: string) => {
-    if (!isSpanish) return text;
-
-    if (translatedCache[text]) {
-      return translatedCache[text];
-    }
-
-    try {
-      return await translateText(text, 'es');
-    } catch (error) {
-      console.error('Translation error:', error);
-      return text;
-    }
-  }, [isSpanish, translateText, translatedCache]);
-
-  return t;
 }
 
 interface TranslateProps {
