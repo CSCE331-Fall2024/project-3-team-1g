@@ -170,9 +170,9 @@ app.post('/manager-view', async (req, res) => {
 
     //METHOD FOR DELETING EMPLOYEE
     else if (action ==='deleteEmp'){
-      await client.query(
-        'DELETE FROM "Employee" WHERE "Employee_ID" = $1', [id],
-      );
+      await client.query('DELETE FROM "Employee_Log" WHERE "Employee_ID" = $1', [id]);
+      await client.query('DELETE FROM "Weekly_Schedule" WHERE "Employee_ID" = $1', [id]);
+      await client.query('DELETE FROM "Employee" WHERE "Employee_ID" = $1', [id],);
 
       // console.log('Deleting employee with:', { id, stock, units, cpu });
       return res.json({ message: 'Employee deleted successfully' });
