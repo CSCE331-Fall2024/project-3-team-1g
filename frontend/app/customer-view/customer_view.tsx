@@ -185,7 +185,7 @@ function Translate({ children, isSpanish, translateText, translatedCache }: Tran
 }
 
 export default function Component() {
-  const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app'
+  const backendUrl = 'https://backend-project-3-team-1g-production.up.railway.app';
   const categories = ['Mains', 'Appetizers', 'Drinks', 'Extras']
   const [selectedCategory, setSelectedCategory] = useState('Mains')
   const [cart, setCart] = useState<Cart>({ items: [], total: 0, tax: 0 })
@@ -273,7 +273,7 @@ export default function Component() {
   const ensureAllergenArrays = (item: MenuItem): MenuItem => {
     return {
       ...item,
-      contains_allergens: item.contains_allergens || ["tree nuts", "peanuts", "wheat"],
+      contains_allergens: item.contains_allergens || [],
       doesnt_contain: item.doesnt_contain || ["vegetarian", "vegan"],
     };
   };

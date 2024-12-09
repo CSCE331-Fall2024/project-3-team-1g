@@ -14,7 +14,9 @@ import { Input } from "@/components/ui/input"
 import { useRouter } from 'next/navigation'
 import { strict } from 'assert'
 import { report } from 'process'
-import { format, toZonedTime } from 'date-fns-tz'
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 
 // Define types for our data structures
 type InventoryItem = {
@@ -309,12 +311,9 @@ export default function Component() {
   const fetchXReportData = async () => {
     if (selectedReport === 'X'){
       try {
-        const today = new Date();
-        const timeZone = 'America/Chicago';
-        const zonedDate = toZonedTime(today, timeZone);
-
-        const currDate = format(zonedDate, 'yyyy-MM-dd', { timeZone });
-        const currTime = today.getHours();
+        const now = dayjs().tz('America/Chicago');
+        const currDate = now.format('YYYY-MM-DD');
+        const currTime = now.hour();
         console.log(currDate);
         console.log(currTime);
 
