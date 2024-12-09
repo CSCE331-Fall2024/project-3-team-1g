@@ -237,7 +237,7 @@ app.post('/manager-view', async (req, res) => {
                         "AND \"Order\".\"Time\" <= 22 " +
                         "GROUP BY \"Order\".\"Time\" " +
                         "ORDER BY \"Order\".\"Time\"",
-                        [date, time]);
+                        [date]);
 
       return res.json({ zReport: ZReportRows.rows });
     }
