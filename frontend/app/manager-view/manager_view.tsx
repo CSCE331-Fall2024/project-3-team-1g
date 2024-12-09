@@ -927,8 +927,8 @@ export default function Component() {
             className={`text-white text-lg ${selectedReport === reportType ? 'bg-[#FF9636] hover:bg-[#FFA54F]' : 'hover:bg-[#E03A3C]'}`}
             onClick={() =>  { 
               setSelectedReport(reportType as 'X' | 'Y' | 'Z');
-              console.log(reportType);
-              console.log(selectedReport);
+              // console.log(reportType);
+              // console.log(selectedReport);
             }}
           > 
           
