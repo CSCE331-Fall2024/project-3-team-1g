@@ -111,7 +111,6 @@ app.post('/manager-view', async (req, res) => {
     const inventoryRows = await client.query('SELECT * FROM "Ingredient_Inventory"');
     
     const { action, id, stock, units, cpu } = req.body;
-    // console.log('Received data:', req.body); //debugging
 
     //METHOD FOR ADDING NEW ITEMS TO INVENTORY
     if (action === 'add') {
@@ -147,7 +146,6 @@ app.post('/manager-view', async (req, res) => {
 
     //QUERY FOR FETCHING EMPLOYEE TABLE
     const employeeRows = await client.query('SELECT * FROM "Employee"');
-    // console.log(inventoryRows.rows); //debugging
 
     //METHOD FOR ADDING NEW EMPLOYEE
     if (action==='addEmp'){
@@ -156,7 +154,6 @@ app.post('/manager-view', async (req, res) => {
         [id, stock, units, cpu]
       );
 
-      // console.log('Adding inventory item with:', { id, stock, units, cpu });
       return res.json({ message: 'Employee added successfully' });
     }
 
@@ -177,13 +174,12 @@ app.post('/manager-view', async (req, res) => {
         'DELETE FROM "Employee" WHERE "Employee_ID" = $1', [id],
       );
 
-      console.log('Deleting employee with:', { id, stock, units, cpu });
+      // console.log('Deleting employee with:', { id, stock, units, cpu });
       return res.json({ message: 'Employee deleted successfully' });
     }
 
     //QUERY FOR FETCHING MENU_ITEM TABLE
     const menuRows = await client.query('SELECT * FROM "Menu_Item"');
-    // console.log(menuItems.rows); //debugging
 
     const { item_id, category, inventory, servsize, item_units } = req.body;
     //METHOD FOR ADDING MENU ITEM
@@ -197,11 +193,11 @@ app.post('/manager-view', async (req, res) => {
       return res.json({ message: 'Menu item added successfully' });
     }
 
-    const { date, time } = req.body;
-    console.log("Received date:", date);
-    console.log("Received time:", time);
-    
-    const XReportRows = await client.query("SELECT \"Order\".\"Time\" AS Hour_Of_Day, " + 
+    const { reportType, date, time } = req.body;
+    // console.log("Report type: ", reportType);
+    //QUERY FOR FETCHING XREPORT DATA
+    if (reportType === 'X'){
+      const XReportRows = await client.query("SELECT \"Order\".\"Time\" AS Hour_Of_Day, " + 
                                 "COUNT(\"Order\".\"Order_ID\") AS Order_Count, " +
                                 "SUM(\"Container\".\"Price\") AS Total_Sales_Revenue " +
                         "FROM \"Order\" " +
@@ -211,14 +207,30 @@ app.post('/manager-view', async (req, res) => {
                         "AND \"Order\".\"Time\" <= $2 " +
                         "GROUP BY \"Order\".\"Time\" " +
                         "ORDER BY \"Order\".\"Time\"",
-                      [date, time]);
-    console.log(XReportRows.rows);
+                        [date, time]);
+      return res.json({xReport: XReportRows.rows});
+    }
+    //QUERY FOR FETCHING YREPORT DATA
+    else if (reportType === 'Y'){
+      const YReportRows = await client.query(`
+            SELECT EXTRACT(WEEK FROM "Date") AS Week_Number,
+                  COUNT("Order_ID") AS Order_Count
+            FROM "Order"
+            GROUP BY EXTRACT(WEEK FROM "Date")
+            ORDER BY Week_Number
+      `);
+
+      return res.json({ yReport: YReportRows.rows });
+    }
+
+    // const testQuery = await client.query('SELECT * FROM "Order"');
 
     res.json({
       inventory: inventoryRows.rows,
       employees: employeeRows.rows,
       menu: menuRows.rows,
-      xReport: XReportRows.rows,
+      // xReport: XReportRows.rows,
+      // yReport: YReportRows.rows,
     });
   }
   catch (error) {

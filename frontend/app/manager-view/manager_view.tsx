@@ -34,13 +34,6 @@ type Employee = {
   Hourly_Salary: number;
 }
 
-type ReportItem = {
-  category: string;
-  Hour_Of_Day?: string; // Optional for X reports
-  Order_Count?: number; // Optional for X reports
-  Total_Sales_Revenue?: number; // Optional for X reports
-}
-
 type MenuItem = {
   Menu_Item_ID: string;
   Category: string;
@@ -66,13 +59,14 @@ type XReportItem = {
 };
 
 type YReportItem = {
-  category: string;
+  week_number: number;
+  order_count: number;
 };
 
 type ZReportItem = {
-  Hour_Of_Day: number;
-  Order_Count: number;  
-  Total_Sales_Revenue: number;
+  hour_of_day: number;
+  order_count: number;
+  total_sales_revenue: number;
 };
 
 type ReportData = {
@@ -86,10 +80,10 @@ const reportData: ReportData = {
     { hour_of_day: 0, order_count: 0, total_sales_revenue: 0 },
   ],
   Y: [
-    { category: 'Opening Cash'},
+    { week_number: 0, order_count: 0},
   ],
   Z: [
-    { Hour_Of_Day: 0, Order_Count: 0, Total_Sales_Revenue: 0 }
+    { hour_of_day: 0, order_count: 0, total_sales_revenue: 0 }
   ],
 };
 
@@ -182,10 +176,6 @@ export default function Component() {
     Z: [],
   });
 
-  const [xHour, setxHour] = React.useState(0);
-  const [xOrder, setxOrder] = React.useState(0);
-  const [xTotal, setxTotal] = React.useState(0);
-
   //gets Ingredient_Inventory table data from database to populate table in Inventory tab
   const fetchInventory = async () => {
     if (selectedSection === 'Inventory'){
@@ -211,7 +201,7 @@ export default function Component() {
         }
 
         const data = await response.json();
-        console.log(data);
+        // console.log(data);
 
         setInventoryItems(data.inventory);
       }
@@ -249,7 +239,7 @@ export default function Component() {
         }
 
         const data = await response.json();
-        console.log(data);
+        // console.log(data);
 
         setEmployees(data.employees);
       }
@@ -312,15 +302,14 @@ export default function Component() {
   const fetchXReportData = async () => {
     if (selectedReport === 'X'){
       try {
-        
         const today = new Date();
         const timeZone = 'America/Chicago';
         const zonedDate = toZonedTime(today, timeZone);
 
         const currDate = format(zonedDate, 'yyyy-MM-dd', { timeZone });
         const currTime = today.getHours();
-        console.log(currDate);
-        console.log(currTime);
+        // console.log(currDate);
+        // console.log(currTime);
 
         const response = await fetch(new URL('/manager-view', backendUrl), {
           method: 'POST',
@@ -328,8 +317,56 @@ export default function Component() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            reportType: 'X',
             date: currDate,
             time: currTime,
+          }),
+        });
+      
+        //checks if HTTP request was successful, throws status code if not
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        //gets the Content-Type header from the server's response, uses that to determine format of the returned data
+        const contentType = response.headers.get('content-type');
+
+        //if the Content-Type header is missing or doesn't contain application/json, throws an error (we expect the response to be JSON format)
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Invalid content type, expected JSON');
+        }
+
+        const data = await response.json();
+
+          
+        setReportData(prevState => ({
+          ...prevState,
+          X: data.xReport,
+        }));
+        console.log(reportData.X);
+
+        alert('XReport fetched successfully!');
+      }
+
+      catch (error) {
+        if (error instanceof Error)
+          console.error('Error fetching XReport:', error.message);
+        else
+          console.error('Unexpected error:', error);
+      }
+    }
+  };
+
+  const fetchYReportData = async () => {
+    
+      try {
+        const response = await fetch(new URL('/manager-view', backendUrl), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            reportType: 'Y',
           }),
         });
       
@@ -351,20 +388,20 @@ export default function Component() {
           
         setReportData(prevState => ({
           ...prevState,
-          X: data.xReport,
+          Y: data.yReport,
         }));
-        console.log(reportData.X);
+        console.log(data.yReport);
 
-        alert('XReport fetched successfully!');
+        alert('YReport fetched successfully!');
       }
 
       catch (error) {
         if (error instanceof Error)
-          console.error('Error fetching XReport:', error.message);
+          console.error('Error fetching YReport:', error.message);
         else
           console.error('Unexpected error:', error);
       }
-    }
+    
   };
 
   useEffect(() => {
@@ -888,8 +925,13 @@ export default function Component() {
             key={reportType}
             variant={selectedReport === reportType ? "secondary" : "ghost"}
             className={`text-white text-lg ${selectedReport === reportType ? 'bg-[#FF9636] hover:bg-[#FFA54F]' : 'hover:bg-[#E03A3C]'}`}
-            onClick={() => setSelectedReport(reportType as 'X' | 'Y' | 'Z')}
-          >
+            onClick={() =>  { 
+              setSelectedReport(reportType as 'X' | 'Y' | 'Z');
+              // console.log(reportType);
+              // console.log(selectedReport);
+            }}
+          > 
+          
             {reportType} Report
           </Button>
         ))}
@@ -908,7 +950,7 @@ export default function Component() {
         {reportData[selectedReport].map((item, index) => {
           if (selectedReport === 'X') {
             const xItem = item as XReportItem
-            console.log(xItem.hour_of_day);
+            //console.log(xItem.hour_of_day);
             return (
               <TableRow key={index}>
                 <TableCell>{xItem.hour_of_day}</TableCell>
@@ -921,9 +963,9 @@ export default function Component() {
             const zItem = item as ZReportItem
             return (
               <TableRow key={index}>
-                <TableCell>{zItem.Hour_Of_Day}</TableCell>
-                <TableCell>{zItem.Order_Count}</TableCell>
-                <TableCell>${zItem.Total_Sales_Revenue.toFixed(2)}</TableCell>
+                <TableCell>{zItem.hour_of_day}</TableCell>
+                <TableCell>{zItem.order_count}</TableCell>
+                <TableCell>{zItem.total_sales_revenue}</TableCell>
               </TableRow>
             );
           } 
@@ -931,7 +973,8 @@ export default function Component() {
             const yItem = item as YReportItem
             return (
               <TableRow key={index}>
-                <TableCell>{yItem.category}</TableCell>
+                <TableCell>{yItem.week_number}</TableCell>
+                <TableCell>{yItem.order_count}</TableCell>
               </TableRow>
             );
           }
@@ -939,12 +982,17 @@ export default function Component() {
       </TableBody>
       </Table>
       ) : (
+        // default message if there is no data to show (ex. no orders made today)
         <p>No data available</p>
       )}
       <div className="flex gap-2">
         <Button className="flex-1 bg-panda-orange hover:bg-panda-red-light hover:text-black text-lg" onClick={() => {
-          if (selectedReport === 'X') {
+          console.log(`Generate Report clicked for: ${selectedReport}`);
+          if (selectedReport === 'X') {     //hard coding each bc retesting a function to take a value will take too long
             fetchXReportData();
+          }
+          else if (selectedReport === 'Y'){
+            fetchYReportData();
           }
         }}>
           <FileText className="mr-2 h-4 w-4" />
