@@ -192,6 +192,16 @@ app.post('/manager-view', async (req, res) => {
       // console.log('Adding menu item with:', { item_id, category, inventory, servsize, item_units });
       return res.json({ message: 'Menu item added successfully' });
     }
+    //METHOD FOR EDITING MENU ITEM
+    else if (action==='editMen'){
+      await client.query(
+        'UPDATE "Menu_Item" SET "Category" = $2, "Active_Inventory" = $3, "Serving_Size" = $4, "Units" = $5, WHERE "Menu_Item_ID" = $1',
+        [item_id, category, inventory, servsize, item_units]
+      );
+
+      // console.log('Adding menu item with:', { item_id, category, inventory, servsize, item_units });
+      return res.json({ message: 'Menu item edited successfully' });
+    }
 
     const { reportType, date, time } = req.body;
     // console.log("Report type: ", reportType);

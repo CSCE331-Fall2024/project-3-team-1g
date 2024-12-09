@@ -145,6 +145,7 @@ export default function Component() {
   const [selectedItemForDelete, setSelectedItemForDelete] = useState<InventoryItem | null>(null);
   const [selectedEmployeeForEdit, setSelectedEmployeeForEdit] = useState<Employee | null>(null);
   const [selectedEmployeeForDelete, setSelectedEmployeeForDelete] = useState<Employee | null>(null);
+  const [selectedMenuForEdit, setSelectedMenuForEdit] = useState<MenuItem | null>(null);
 
   const [showAddDialog, setShowAddDialog] = useState<boolean>(false)
   const [showEditDialog, setShowEditDialog] = useState<boolean>(false)
@@ -721,13 +722,41 @@ export default function Component() {
     }
   }
 
-  // const handleEditMenuItem = (category: string, editedItem: MenuItem) => {
-  //   setMenuItemsState({
-  //     ...menuItemsState,
-  //     [category]: menuItemsState[category].map(item => item.id === editedItem.id ? editedItem : item)
-  //   })
-  //   setShowEditDialog(false)
-  // }
+  const handleEditMenuItem = async (item_id: string, category: string, inventory: number, servsize: number, item_units: string) => {
+    try {
+      const response = await fetch(new URL('/manager-view', backendUrl), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'editMen',
+          item_id,
+          category,
+          inventory,
+          servsize,
+          item_units,
+        }),
+      });
+    
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to edit menu item');
+      }
+
+      const data = await response.json();
+      console.log(data.message);
+      alert('Menu item edited successfully!');
+      setShowAddDialog(false);
+    }
+
+    catch (error) {
+      if (error instanceof Error)
+        console.error('Error editing menu item:', error.message);
+      else
+        console.error('Unexpected error:', error);
+    }
+  }
 
   // const handleDeleteMenuItem = (category: string, id: string) => {
   //   setMenuItemsState({
@@ -1107,9 +1136,34 @@ export default function Component() {
                   />
                   <h3 className="font-bold text-white">{item.Menu_Item_ID}</h3>
                   <div className="flex gap-2 mt-2">
-                    <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(true)}>
+                    {/* Edit Button with Dialog */}
+                <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={() => {
+                      setSelectedMenuForEdit(item);
+                      setShowEditDialog(true);
+                    }}>
                       <Edit className="h-4 w-4" />
                     </Button>
+                  </DialogTrigger>
+                  {selectedMenuForEdit && (
+                  <DialogContent className="bg-[#2C2C2C] text-white">
+                    <DialogHeader>
+                      <DialogTitle>Edit {selectedMenuForEdit.Menu_Item_ID}</DialogTitle>
+                    </DialogHeader>
+                    <div className = "space-y-4">
+                      <Input type="string" placeholder="Category" className="bg-[#1C1C1C] border-none" onChange={(e) => setMenCategory(e.target.value)}/>
+                      <Input type="number" placeholder="Active_Inventory"className="bg-[#1C1C1C] border-none" onChange={(e) => setMenInventory(Number(e.target.value))}/>
+                      <Input type="number" placeholder="Serving_Size" className="bg-[#1C1C1C] border-none" onChange={(e) => setMenServSize(Number(e.target.value))}/>
+                      <Input type="string" placeholder="Units" className="bg-[#1C1C1C] border-none" onChange={(e) => setMenUnits(e.target.value)}/>
+                      <Button className="w-full bg-panda-red hover:bg-[#b52528]" onClick={() => handleEditMenuItem(selectedMenuForEdit.Menu_Item_ID, menCategory, menInventory, menServSize, menUnits)}>Edit Item</Button>
+                    </div>
+                  </DialogContent>
+                  )}
+                </Dialog>
+                    {/* <Button variant="ghost" size="icon" onClick={() => setShowEditDialog(true)}>
+                      <Edit className="h-4 w-4" />
+                    </Button> */}
                   </div>
                 </CardContent>
               </Card>
