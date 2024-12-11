@@ -296,7 +296,7 @@ export default function Component() {
   const assignImagesToMenuItems = (menuItems: MenuItem[]): MenuItem[] => {
     return menuItems.map((item) => ({
       ...item,
-      Image: images[item.Menu_Item_ID] || '/imgs/pandaseasonal.png',
+      Image: `/imgs/${item.Menu_Item_ID.toLowerCase().replaceAll(' ', '')}.png?height=100&width=100` || '/imgs/pandaseasonal.png',
     }));
   };
 
