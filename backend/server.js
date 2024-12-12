@@ -204,6 +204,15 @@ app.post('/manager-view', async (req, res) => {
       return res.json({ message: 'Menu item edited successfully' });
     }
 
+    //METHOD FOR DELETING MENU ITEM
+    else if (action ==='delMen'){
+      await client.query(
+        'DELETE FROM "Menu_Item" WHERE "Menu_Item_ID" = $1', [id],
+      );
+
+      return res.json({ message: 'Menu item deleted successfully' });
+    }
+
     const { reportType, date, time } = req.body;
     // console.log("Report type: ", reportType);
 

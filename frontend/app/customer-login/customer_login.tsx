@@ -151,7 +151,7 @@ export default function CustomerLogin() {
         </header>
         <main className="flex-1">
           <div className="container mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-80px)] p-4">
-            <h1 className="text-4xl bg-white font-bold text-black mb-8">
+            <h1 className="text-4xl bg-white font-bold text-black mb-8 p-3 rounded-lg">
               {translatedText.header}
             </h1>
             <div className="w-full max-w-md bg-[#DC0032] rounded-lg p-6 space-y-6">
