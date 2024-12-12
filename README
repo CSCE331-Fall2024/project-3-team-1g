@@ -1,5 +1,43 @@
-make sure to run:
-node server.js
+Technology Used:
+-Frontend:
+    React, Next.js, TypeScript, Tailwind CSS
+-Backend:
+    Node.js, Express.js, PostgreSQL 
+-Deployment:
+    Vercel, Railway
+-APIs:
+    Google OAuth, Google Translate API, Weather API
 
-before making any types of changes that will use the backend
-(I spent 2 hours trying to figure out why console logs weren't outputting only to find out that the server wasn't even running)
+Features:
+-Customers:
+    Start at customer login page where you can view the weather if you like. Can sign in using either registered username and password or by using Google Authentication.
+    Can make orders using an easy, streamlined process that tells you where to go. Features include adding item to order, editing order, removing items from order, checking out, and translating UI to Spanish.
+-Cashiers:
+    Login through registered username and password for security.
+    Can quickly take orders with one button click corresponding to each item needed to be added. Can also add items to order, edit order, remove items from order, and check out.
+-Managers:
+    Login through registered username and password for security.
+    4 tabs for viewing the Menu, Employees, Ingredient Inventory, and Reports.
+    Can add new menu items or edit existing ones using button grid.
+    Can add new inventory items, edit existing ones, and remove existing ones using table.
+    Can add new employees, edit existing ones, and remove existing ones using table.
+    Can generate an XReport and ZReport to view current day's total revenue and orders taken each hour. Can also generate YReport (Weekly Sales Report) to show number of orders taken every week since establishment opened.
+-Accessibility:
+    Large buttons that are hard to miss for people with physical impairments.
+    Large, contrasting, bold text to make all information clear.
+    Spanish language support for non-English speakers.
+-Above-and-Beyond Feature:
+    Dietary preferences and allergens supported. Shows information on each menu item in the customer view.
+
+How to Use:
+    Go to https://project-3-team-1g.vercel.app/ to use the app.
+
+    To use it locally:
+        cd backend
+        node server.js
+
+        cd ..
+        cd frontend
+        npm run build
+        npm run dev
+        Click on localhost:3000

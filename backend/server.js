@@ -1,13 +1,17 @@
+//importing required frameworks
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const { Client } = require('pg');
+
+//creates instance
 const app = express();
-app.use(bodyParser.json());
+
+app.use(bodyParser.json()); //enables JSON payload parsing
 app.use(cors()); //cord for connecting front and back
 
 
-//db
+//db details
 const client = new Client({
   user: 'team_1g',
   host: 'csce-315-db.engr.tamu.edu',
@@ -16,6 +20,7 @@ const client = new Client({
   port: 5432,
 });
 
+//
 client.connect()
   .then(() => console.log('Connected to PostgreSQL server'))
   .catch(err => console.error('Connection error', err.stack));
@@ -24,8 +29,10 @@ app.post('/customer-login', async (req, res) => {
   const { login, password } = req.body;
 
   try {
+    //query to fetch login info
     const result = await client.query('SELECT * FROM users WHERE login = $1;', [login]);
 
+    //checks
     if (result.rows.length === 0) {
       return res.status(400).json({ error: 'Invalid login or password' });
     }
@@ -52,8 +59,10 @@ app.post('/cashier-login', async (req, res) => {
   const { login, password } = req.body;
 
   try {
+    //query to fetch login info
     const result = await client.query('SELECT * FROM users WHERE login = $1;', [login]);
 
+    //checks
     if (result.rows.length === 0) {
       return res.status(400).json({ error: 'Invalid login or password' });
     }
@@ -80,8 +89,10 @@ app.post('/manager-login', async (req, res) => {
   const { login, password } = req.body;
 
   try {
+    //query to fetch login info
     const result = await client.query('SELECT * FROM users WHERE login = $1;', [login]);
 
+    //checks
     if (result.rows.length === 0) {
       return res.status(400).json({ error: 'Invalid login or password' });
     }
@@ -232,7 +243,7 @@ app.post('/manager-view', async (req, res) => {
       return res.json({xReport: XReportRows.rows});
     }
 
-    //QUERY FOR FETCHING YREPORT DATA
+    //QUERY FOR FETCHING WEEKLY SALES REPORT DATA
     else if (reportType === 'Y'){
       const YReportRows = await client.query(`
             SELECT EXTRACT(WEEK FROM "Date") AS Week_Number,
@@ -262,14 +273,11 @@ app.post('/manager-view', async (req, res) => {
       return res.json({ zReport: ZReportRows.rows });
     }
 
-    // const testQuery = await client.query('SELECT * FROM "Order"');
-
+    //returns data from queries
     res.json({
       inventory: inventoryRows.rows,
       employees: employeeRows.rows,
       menu: menuRows.rows,
-      // xReport: XReportRows.rows,
-      // yReport: YReportRows.rows,
     });
   }
   catch (error) {
@@ -278,17 +286,19 @@ app.post('/manager-view', async (req, res) => {
   }
 });
 
-// List of menu items to exclude
+//list of menu items to exclude from being rendered
 const excludedItems = ['fortnite','Swag','(Special) GYATS', 'SEASONAL Bourbon Chicken', 'SEASONAL Salt Pepper Chicken', 'Bowl', 'Plate', 'Bigger Plate', 'Appetizer Container', 'Drink', 'AppetizerGYATS', 'Brocolli Beef'];
 
+//list of allergens
 const allergenMap = {
   wheat: ['Flour', 'Wonton Wrapper'],
   soy: ['Soy Sauce', 'Hoisin Sauce', 'Oyster Sauce'],
   shellfish: ['Oyster Sauce'],
   lactose: ['Cream Cheese'],
-  eggs: ['Wonton Wrapper'], // Wonton wrappers often contain eggs
+  eggs: ['Wonton Wrapper'],
 };
 
+//list of dietary preferences
 const doesntContainMap = {
   vegetarian: ['Beef', 'Chicken'],
   vegan: ['Beef', 'Chicken', 'Cream Cheese', 'Oyster Sauce'],
@@ -312,14 +322,14 @@ async function get_allergens(menuItemId) {
 
     console.log('Ingredients:', ingredients);
 
-    // Check for allergens
+    //checks for allergens
     for (const [allergen, allergenIngredients] of Object.entries(allergenMap)) {
       if (ingredients.some(ingredient => allergenIngredients.includes(ingredient))) {
         allergens.contains_allergens.push(allergen);
       }
     }
 
-    // Check for vegetarian and vegan
+    //checks for vegetarian and vegan
     let isVegetarian = true;
     let isVegan = true;
     for (const ingredient of ingredients) {
@@ -332,8 +342,10 @@ async function get_allergens(menuItemId) {
         isVegan = false;
       }
     }
-    if (isVegetarian) allergens.doesnt_contain.push('vegetarian');
-    if (isVegan) allergens.doesnt_contain.push('vegan');
+    if (isVegetarian)
+      allergens.doesnt_contain.push('vegetarian');
+    if (isVegan)
+      allergens.doesnt_contain.push('vegan');
 
   } catch (error) {
     console.error('Error fetching allergens:', error);
